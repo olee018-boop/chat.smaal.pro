@@ -1,329 +1,285 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v5 (Admin Edition)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Private Chat - Dashboard</title>
     <style>
-        :root {
-            --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
-            --accent: #10b981; --text: #fafafa; --msg-me: #059669;
-            --glass: blur(20px) saturate(180%);
-        }
-        [data-theme="midnight"] { --bg: #020617; --accent: #6366f1; --msg-me: #4338ca; }
-        [data-theme="rose"] { --bg: #0f0505; --accent: #f43f5e; --msg-me: #be123c; }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; }
-
-        /* iPad / Desktop Split View */
-        #app { flex: 1; display: flex; width: 100%; max-width: 1200px; margin: 0 auto; position: relative; overflow: hidden; }
-
-        .sidebar { width: 350px; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; background: var(--bg); }
-        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
-
-        @media (max-width: 800px) {
-            .sidebar { display: none; } /* Mobile toggle logic handled by JS */
-            .sidebar.mobile-active { display: flex; position: absolute; inset: 0; z-index: 2000; width: 100%; }
-        }
-
-        .screen { display: none; flex-direction: column; height: 100%; animation: fade 0.2s ease; }
-        .screen.active { display: flex; }
-        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-
-        .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #111b21; color: #e9edef; height: 100vh; overflow: hidden; }
         
-        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 100px; }
+        /* Layout Screens */
+        .screen { display: none; flex-direction: column; height: 100vh; width: 100%; max-width: 600px; margin: 0 auto; border-left: 1px solid #3b4a54; border-right: 1px solid #3b4a54; background: #0b141a; }
+        .active { display: flex; }
+
+        /* Login Styling */
+        #loginScreen { justify-content: center; padding: 40px; text-align: center; }
+        .login-card { background: #202c33; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        input { background: #2a3942; border: 1px solid #3b4a54; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; width: 100%; outline: none; }
+        button { background: #00a884; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        button:hover { background: #008f6f; }
+
+        /* Header */
+        .header { background: #202c33; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3b4a54; }
+        .header h2 { font-size: 18px; }
+
+        /* Home Screen Specifics */
+        .section-label { padding: 15px 15px 5px; font-size: 12px; color: #00a884; text-transform: uppercase; font-weight: bold; }
+        .list-container { flex: 1; overflow-y: auto; padding: 10px; }
+        .item-card { background: #202c33; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .item-card span { font-weight: 500; }
+        .join-btn { width: auto; padding: 5px 15px; font-size: 12px; }
+
+        /* Chat Styling */
+        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; background-image: linear-gradient(rgba(11,20,26,0.95), rgba(11,20,26,0.95)), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+        .msg { margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; font-size: 14px; color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .msg.me { background: #005c4b !important; align-self: flex-end; border-top-right-radius: 0; }
+        .msg.other { align-self: flex-start; border-top-left-radius: 0; }
+        .msg.action { background: rgba(255, 193, 7, 0.2) !important; align-self: center; border-radius: 20px; font-style: italic; color: #ffc107; border: 1px solid #ffc107; }
         
-        .nav-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; height: 65px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; opacity: 0.5; }
-        .nav-btn.active { opacity: 1; color: var(--accent); }
+        .controls { padding: 15px; background: #202c33; display: flex; gap: 10px; align-items: center; }
+        #messageInput { flex: 1; margin-bottom: 0; }
+        .action-btn { background: #3b4a54; width: auto; font-size: 18px; padding: 8px; }
 
-        .input-wrap { padding: 15px; display: flex; gap: 10px; background: var(--panel); border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 500; margin-bottom: 85px; }
-
-        .msg { display: flex; gap: 10px; max-width: 85%; position: relative; margin-bottom: 5px; }
-        .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; position: relative; }
-        .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
-        
-        .pfp { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #333; cursor: pointer; }
-        
-        /* Admin Badge */
-        .admin-only { display: none; border: 1px solid gold; color: gold; padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 12px; text-align: center; }
-
-        #loginScreen, #banScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        #banScreen { display: none; color: #ef4444; }
-
-        input, select, textarea { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
-        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        #notifToggle.on { background: #00a884; }
     </style>
 </head>
 <body>
 
-<div id="loginScreen">
-    <div style="width: 100%; max-width: 320px;">
-        <h1 style="margin-bottom: 20px;">Pro Chat Elite</h1>
-        <input type="text" id="userInp" placeholder="Username" style="margin-bottom:10px">
-        <input type="password" id="passInp" placeholder="Password" style="margin-bottom:15px">
-        <button onclick="login()" style="width:100%">Sign In</button>
+    <div id="loginScreen" class="screen active">
+        <div class="login-card">
+            <h1 style="margin-bottom: 20px;">Welcome</h1>
+            <input type="text" id="regUser" placeholder="Username">
+            <input type="password" id="regPass" placeholder="Password">
+            <button onclick="handleAuth()">Enter Chat</button>
+        </div>
     </div>
-</div>
 
-<div id="banScreen">
-    <div>
-        <h1 style="font-size: 50px;">🚫</h1>
-        <h2>Account Terminated</h2>
-        <p>Your account was deleted or banned by an administrator.</p>
-        <button onclick="location.reload()" style="margin-top:20px; background:#444">Back to Login</button>
-    </div>
-</div>
-
-<div id="app">
-    <div class="main-content">
+    <div id="homeScreen" class="screen">
+        <div class="header">
+            <h2 id="welcomeText">Home</h2>
+            <button onclick="logout()" style="width:auto; padding: 5px 10px; background:#f44336">Logout</button>
+        </div>
         
-        <div id="home" class="screen active">
-            <div class="header">
-                <h2>Pro Chat</h2>
-                <div id="adminIcon" onclick="setTab('admin')" style="display:none; cursor:pointer; font-size:20px;">🛡️</div>
-            </div>
-            <div style="flex:1; overflow-y:auto; padding:20px;">
-                <p style="font-size:11px; opacity:0.4; margin-bottom:10px;">PINNED & FAVORITES</p>
-                <div id="favList"></div>
-                
-                <p style="font-size:11px; opacity:0.4; margin-top:20px; margin-bottom:10px;">FRIENDS</p>
-                <div id="friendList"></div>
-
-                <div id="owenRequests" class="admin-only">
-                    <b>ADMIN: User Requests Pending</b>
-                    <button onclick="setTab('requests')" class="sec-btn" style="margin-top:5px">View Help Tickets</button>
-                </div>
-            </div>
+        <div class="section-label">Create or Join Group</div>
+        <div style="padding: 10px; display: flex; gap: 10px;">
+            <input type="text" id="newRoomInput" placeholder="Group Name..." style="margin-bottom:0">
+            <button onclick="joinNamedRoom()" style="width:100px">Go</button>
         </div>
 
-        <div id="chat" class="screen">
-            <div class="header">
-                <span onclick="setTab('home')" style="cursor:pointer">‹ Back</span>
-                <b id="chatTitle">Select a Chat</b>
-                <span id="favBtn" onclick="toggleFav()" style="cursor:pointer; font-size:20px;">☆</span>
+        <div class="section-label">Users Online</div>
+        <div id="userList" class="list-container">
             </div>
-            <div id="chatBox"></div>
-            <div class="input-wrap">
-                <button onclick="document.getElementById('fileInp').click()" style="width:45px; background:#333">+</button>
-                <input type="file" id="fileInp" style="display:none" onchange="sendMedia(this)">
-                <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
-                <button onclick="sendText()" style="width:60px">➤</button>
+    </div>
+
+    <div id="chatScreen" class="screen">
+        <div class="header">
+            <button onclick="goHome()" style="width:auto; background:transparent; font-size:20px">←</button>
+            <h2 id="chatTitle">Room</h2>
+            <div style="display:flex; gap:5px">
+                <button id="notifToggle" onclick="toggleNotifications()" style="width:40px">🔔</button>
+                <button onclick="copyRoomLink()" style="width:40px; background:#3b4a54">🔗</button>
             </div>
         </div>
-
-        <div id="people" class="screen">
-            <div class="header"><h2>Find People</h2></div>
-            <div style="flex:1; overflow-y:auto; padding:20px;">
-                <div id="pendingRequests"></div>
-                <div id="allUsers"></div>
-            </div>
-        </div>
-
-        <div id="admin" class="screen">
-            <div class="header"><h2>Admin Dashboard</h2></div>
-            <div style="flex:1; overflow-y:auto; padding:20px;">
-                <h3>User Management</h3>
-                <div id="adminUserList" style="margin-top:10px;"></div>
-                <h3 style="margin-top:30px;">Global Logs</h3>
-                <div id="globalLogs" style="font-size:12px; background:#111; padding:10px; border-radius:10px; margin-top:10px;"></div>
-            </div>
-        </div>
-
-        <div id="requests" class="screen">
-            <div class="header"><h2>Support</h2></div>
-            <div style="padding:20px;">
-                <textarea id="reqInp" placeholder="Ask Owen for a feature or report a bug..." style="height:100px;"></textarea>
-                <button onclick="sendRequestToOwen()" style="margin-top:10px;">Submit Request</button>
-                <div id="adminRequestList" style="margin-top:30px; display:none;"></div>
-            </div>
-        </div>
-
-        <div id="settings" class="screen">
-            <div class="header"><h2>Settings</h2></div>
-            <div style="padding:20px;">
-                <img id="myPFP" class="pfp" style="width:80px; height:80px; margin-bottom:10px;" onclick="document.getElementById('pfpInp').click()">
-                <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
-                <input type="text" id="newNameInp" placeholder="Display Name" style="margin-bottom:10px">
-                <button onclick="saveProfile()" style="width:100%">Save Profile</button>
-                <button onclick="logout()" style="margin-top:50px; background:#333;">Logout</button>
-            </div>
-        </div>
-
-        <div class="nav-bar">
-            <div class="nav-btn active" onclick="setTab('home')" id="btn-home">🏠</div>
-            <div class="nav-btn" onclick="setTab('people')" id="btn-people">👥</div>
-            <div class="nav-btn" onclick="setTab('requests')" id="btn-requests">📩</div>
-            <div class="nav-btn" onclick="setTab('settings')" id="btn-settings">⚙️</div>
+        <div id="chatBox"></div>
+        <div class="controls">
+            <button class="action-btn" onclick="sendAction('🍕 is eating...')" title="Eat">🍕</button>
+            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <button id="sendBtn" onclick="sendMsg()" style="width:80px">Send</button>
         </div>
     </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, update } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded, onValue, set, get, off } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
-        authDomain: "mychatapp-10a99.firebaseapp.com",
-        projectId: "mychatapp-10a99",
-        databaseURL: "https://mychatapp-10a99-default-rtdb.firebaseio.com/"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
+            authDomain: "mychatapp-10a99.firebaseapp.com",
+            projectId: "mychatapp-10a99",
+            storageBucket: "mychatapp-10a99.firebasestorage.app",
+            messagingSenderId: "8158664716",
+            appId: "1:8158664716:web:8a25281c2a1714ea557629",
+            databaseURL: "https://mychatapp-10a99-default-rtdb.firebaseio.com/" 
+        };
 
-    const fbApp = initializeApp(firebaseConfig);
-    const db = getDatabase(fbApp);
-    let currentUser = localStorage.getItem("chatU");
-    let activeChatId = null;
-    let isDM = false;
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    // --- SECURITY: AUTO-KICK ---
-    if(currentUser) {
-        onValue(ref(db, 'users/' + currentUser), (snap) => {
-            if(!snap.exists()) {
-                localStorage.clear();
-                document.getElementById('app').style.display = 'none';
-                document.getElementById('banScreen').style.display = 'flex';
+        let currentUser = localStorage.getItem("chatUser") || null;
+        let currentRoom = null;
+        let roomRef = null;
+        let notificationsEnabled = localStorage.getItem("notifEnabled") === "true";
+
+        // --- Navigation ---
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // --- Auth Logic ---
+        window.handleAuth = async function() {
+            const user = document.getElementById("regUser").value.trim();
+            const pass = document.getElementById("regPass").value.trim();
+            if (!user || !pass) return alert("Fill everything in!");
+
+            const userPath = ref(db, 'users/' + user);
+            const snapshot = await get(userPath);
+
+            if (snapshot.exists()) {
+                if (snapshot.val().pass === pass) {
+                    loginSuccess(user);
+                } else {
+                    alert("Wrong password!");
+                }
+            } else {
+                // Register new
+                await set(userPath, { pass: pass, status: "online" });
+                loginSuccess(user);
             }
-        });
-    }
+        };
 
-    // --- AUTH ---
-    window.login = async () => {
-        const u = document.getElementById("userInp").value.trim();
-        const p = document.getElementById("passInp").value.trim();
-        if(!u || !p) return;
-        const snap = await get(ref(db, 'users/' + u));
-        if(snap.exists()) {
-            if(snap.val().pass !== p && u.toLowerCase() !== 'owen') return alert("Access Denied");
-        } else {
-            await set(ref(db, 'users/' + u), { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u, reputation: 0 });
+        function loginSuccess(user) {
+            currentUser = user;
+            localStorage.setItem("chatUser", user);
+            document.getElementById("welcomeText").innerText = "Hi, " + user;
+            showScreen("homeScreen");
+            loadUserList();
         }
-        localStorage.setItem("chatU", u); location.reload();
-    };
 
-    // --- CHAT LOGIC ---
-    window.startDM = (target) => {
-        isDM = true; activeChatId = [currentUser, target].sort().join("_");
-        document.getElementById('chatTitle').innerText = "@ " + target;
-        loadMessages('dms/' + activeChatId);
-        updateFavBtn();
-    };
+        window.logout = function() {
+            localStorage.removeItem("chatUser");
+            location.reload();
+        };
 
-    function loadMessages(path) {
-        document.getElementById('chatBox').innerHTML = "";
-        setTab('chat');
-        onChildAdded(ref(db, path), (s) => renderMsg(s.val()));
-    }
-
-    function renderMsg(data) {
-        const box = document.getElementById('chatBox');
-        const isMe = data.name === currentUser;
-        const div = document.createElement('div');
-        div.className = `msg ${isMe ? 'me' : ''}`;
-        div.innerHTML = `<img src="${data.pfp}" class="pfp"><div class="bubble"><small style="font-size:9px;opacity:0.5">${data.name}</small><div>${data.text || ''}</div>${data.media ? `<img src="${data.media}" style="max-width:100%; border-radius:10px;">` : ''}</div>`;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
-    }
-
-    window.sendText = () => {
-        const i = document.getElementById('msgInp'); if(!i.value) return;
-        const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
-        push(ref(db, path), { name: currentUser, text: i.value, pfp: localStorage.getItem('pfp') });
-        i.value = "";
-    };
-
-    // --- FAVORITES ---
-    window.toggleFav = () => {
-        let favs = JSON.parse(localStorage.getItem('favs') || "[]");
-        if(favs.includes(activeChatId)) favs = favs.filter(f => f !== activeChatId);
-        else favs.push(activeChatId);
-        localStorage.setItem('favs', JSON.stringify(favs));
-        updateFavBtn();
-        renderFavs();
-    };
-
-    function updateFavBtn() {
-        const favs = JSON.parse(localStorage.getItem('favs') || "[]");
-        document.getElementById('favBtn').innerText = favs.includes(activeChatId) ? "⭐" : "☆";
-    }
-
-    function renderFavs() {
-        const list = document.getElementById('favList'); list.innerHTML = "";
-        JSON.parse(localStorage.getItem('favs') || "[]").forEach(f => {
-            const d = document.createElement('div'); d.style="padding:10px; background:var(--panel); border-radius:10px; margin-bottom:5px; cursor:pointer";
-            d.innerHTML = `⭐ ${f}`; d.onclick = () => { activeChatId = f; isDM = f.includes('_'); loadMessages(isDM ? 'dms/'+f : 'rooms/'+f); };
-            list.appendChild(d);
-        });
-    }
-
-    // --- ADMIN & REQUESTS ---
-    window.sendRequestToOwen = () => {
-        const txt = document.getElementById('reqInp').value;
-        if(!txt) return;
-        push(ref(db, 'requests'), { user: currentUser, text: txt, time: Date.now() });
-        alert("Sent to Owen!");
-        document.getElementById('reqInp').value = "";
-    };
-
-    if(currentUser && currentUser.toLowerCase() === 'owen') {
-        document.getElementById('adminIcon').style.display = 'block';
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-        document.getElementById('adminRequestList').style.display = 'block';
-
-        onValue(ref(db, 'users'), (snap) => {
-            const list = document.getElementById('adminUserList'); list.innerHTML = "";
-            snap.forEach(u => {
-                const name = u.key;
-                const d = document.createElement('div'); d.style="display:flex; justify-content:space-between; margin-bottom:10px; background:#222; padding:10px; border-radius:10px;";
-                d.innerHTML = `<span>${name}</span> <button onclick="deleteUser('${name}')" style="background:red; width:auto; padding:5px 10px;">DELETE & KICK</button>`;
-                list.appendChild(d);
+        // --- User List ---
+        function loadUserList() {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                const list = document.getElementById("userList");
+                list.innerHTML = "";
+                snapshot.forEach((child) => {
+                    const div = document.createElement("div");
+                    div.className = "item-card";
+                    div.innerHTML = `<span>👤 ${child.key}</span> <small style="color:gray">Online</small>`;
+                    list.appendChild(div);
+                });
             });
-        });
-
-        onValue(ref(db, 'requests'), (snap) => {
-            const list = document.getElementById('adminRequestList'); list.innerHTML = "<h3>User Requests</h3>";
-            snap.forEach(r => {
-                const data = r.val();
-                list.innerHTML += `<div style="background:#222; padding:10px; margin-top:10px; border-radius:10px;"><b>${data.user}:</b> ${data.text}</div>`;
-            });
-        });
-    }
-
-    window.deleteUser = (name) => {
-        if(confirm(`Really delete ${name}? They will be logged out instantly.`)) {
-            remove(ref(db, 'users/' + name));
         }
-    };
 
-    // --- UI LOGIC ---
-    window.setTab = (id) => {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
-    };
+        // --- Chat Logic ---
+        window.joinNamedRoom = function() {
+            const name = document.getElementById("newRoomInput").value.trim() || "General";
+            connectToRoom(name);
+        };
 
-    function syncPeople() {
-        onValue(ref(db, 'users'), (snap) => {
-            const list = document.getElementById('allUsers'); list.innerHTML = "";
-            snap.forEach(u => {
-                if(u.key === currentUser) { localStorage.setItem('pfp', u.val().pfp); document.getElementById('myPFP').src=u.val().pfp; return; }
-                const d = document.createElement('div'); d.style="display:flex; justify-content:space-between; align-items:center; background:var(--panel); padding:12px; border-radius:15px; margin-bottom:10px";
-                d.innerHTML = `<b>${u.key}</b> <button onclick="startDM('${u.key}')" style="width:auto; padding:5px 15px;">DM</button>`;
-                list.appendChild(d);
+        window.goHome = function() {
+            if (roomRef) off(roomRef);
+            showScreen("homeScreen");
+        };
+
+        function connectToRoom(roomName) {
+            currentRoom = roomName;
+            document.getElementById("chatTitle").innerText = roomName;
+            document.getElementById("chatBox").innerHTML = "";
+            showScreen("chatScreen");
+
+            if (roomRef) off(roomRef);
+            roomRef = ref(db, "rooms/" + roomName);
+
+            onChildAdded(roomRef, (snapshot) => {
+                const data = snapshot.val();
+                renderMessage(data);
+                if (data.name !== currentUser) {
+                    showNotification(data.name, data.text);
+                }
             });
-        });
-    }
+        }
 
-    window.logout = () => { localStorage.clear(); location.reload(); };
+        function renderMessage(data) {
+            const chatBox = document.getElementById("chatBox");
+            const div = document.createElement("div");
+            const isMe = data.name === currentUser;
+            
+            if (data.type === "action") {
+                div.className = "msg action";
+                div.innerText = `${data.name} ${data.text}`;
+            } else {
+                div.className = `msg ${isMe ? 'me' : 'other'}`;
+                if (!isMe) div.style.backgroundColor = stringToColor(data.name);
+                div.innerHTML = `<b>${isMe ? 'You' : data.name}</b>${data.text}<small style="font-size:10px; display:block; text-align:right; opacity:0.6">${data.time}</small>`;
+            }
+            
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
-    if(currentUser) {
-        document.getElementById('loginScreen').style.display='none';
-        syncPeople(); renderFavs();
-    }
-</script>
+        window.sendMsg = function() {
+            const inp = document.getElementById("messageInput");
+            if (!inp.value.trim()) return;
+            
+            push(ref(db, "rooms/" + currentRoom), {
+                name: currentUser,
+                text: inp.value,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                type: "text"
+            });
+            inp.value = "";
+        };
+
+        window.sendAction = function(actionText) {
+            push(ref(db, "rooms/" + currentRoom), {
+                name: currentUser,
+                text: actionText,
+                type: "action"
+            });
+        };
+
+        // --- Notifications & Helpers ---
+        window.toggleNotifications = function() {
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission().then(p => {
+                    if (p === "granted") {
+                        notificationsEnabled = true;
+                        updateNotifUI();
+                    }
+                });
+            } else {
+                notificationsEnabled = !notificationsEnabled;
+                updateNotifUI();
+            }
+            localStorage.setItem("notifEnabled", notificationsEnabled);
+        };
+
+        function updateNotifUI() {
+            const btn = document.getElementById("notifToggle");
+            notificationsEnabled ? btn.classList.add("on") : btn.classList.remove("on");
+        }
+
+        function showNotification(sender, text) {
+            if (notificationsEnabled && document.hidden) {
+                new Notification(sender, { body: text });
+            }
+        }
+
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+            return `hsl(${Math.abs(hash) % 360}, 40%, 35%)`;
+        }
+
+        window.copyRoomLink = function() {
+            const url = window.location.origin + window.location.pathname + "?room=" + encodeURIComponent(currentRoom);
+            navigator.clipboard.writeText(url).then(() => alert("Room Link Copied!"));
+        };
+
+        // Auto-login check
+        if (currentUser) {
+            loginSuccess(currentUser);
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('room')) connectToRoom(urlParams.get('room'));
+        }
+        updateNotifUI();
+    </script>
 </body>
 </html>
