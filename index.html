@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v4.1</title>
+    <title>Pro Chat Elite v5 (Admin Edition)</title>
     <style>
         :root {
             --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
@@ -13,157 +13,158 @@
         [data-theme="midnight"] { --bg: #020617; --accent: #6366f1; --msg-me: #4338ca; }
         [data-theme="rose"] { --bg: #0f0505; --accent: #f43f5e; --msg-me: #be123c; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; transition: background 0.3s ease; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; }
 
-        #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 500px; margin: 0 auto; position: relative; overflow: hidden; }
+        /* iPad / Desktop Split View */
+        #app { flex: 1; display: flex; width: 100%; max-width: 1200px; margin: 0 auto; position: relative; overflow: hidden; }
 
-        .screen { display: none; flex-direction: column; height: 100%; animation: slideUp 0.3s ease; }
+        .sidebar { width: 350px; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; background: var(--bg); }
+        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
+
+        @media (max-width: 800px) {
+            .sidebar { display: none; } /* Mobile toggle logic handled by JS */
+            .sidebar.mobile-active { display: flex; position: absolute; inset: 0; z-index: 2000; width: 100%; }
+        }
+
+        .screen { display: none; flex-direction: column; height: 100%; animation: fade 0.2s ease; }
         .screen.active { display: flex; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
         .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         
-        /* Fixed Scrolling Logic */
-        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 100px; }
         
-        .nav-bar { position: absolute; bottom: 15px; left: 5%; width: 90%; height: 65px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; opacity: 0.5; }
-        .nav-btn.active { opacity: 1; color: var(--accent); transform: scale(1.1); }
+        .nav-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; height: 65px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; opacity: 0.5; }
+        .nav-btn.active { opacity: 1; color: var(--accent); }
 
-        .input-wrap { padding: 12px; display: flex; gap: 10px; background: var(--panel); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: 90px; z-index: 500; }
+        .input-wrap { padding: 15px; display: flex; gap: 10px; background: var(--panel); border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 500; margin-bottom: 85px; }
 
-        /* Message & Reactions */
-        .msg { display: flex; gap: 10px; max-width: 85%; position: relative; }
+        .msg { display: flex; gap: 10px; max-width: 85%; position: relative; margin-bottom: 5px; }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; position: relative; word-wrap: break-word; }
+        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; position: relative; }
         .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
         
-        .reaction-bar { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-        .react-btn { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 2px 6px; font-size: 11px; cursor: pointer; }
-        .react-picker { display: none; position: absolute; top: -35px; background: #18181b; padding: 5px; border-radius: 10px; gap: 8px; border: 1px solid #333; z-index: 50; }
-        .msg:hover .react-picker { display: flex; }
+        .pfp { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #333; cursor: pointer; }
+        
+        /* Admin Badge */
+        .admin-only { display: none; border: 1px solid gold; color: gold; padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 12px; text-align: center; }
 
-        .link-text { color: #60a5fa; text-decoration: underline; cursor: pointer; font-weight: bold; }
-        .pfp { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #333; cursor: pointer; flex-shrink: 0; }
+        #loginScreen, #banScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        #banScreen { display: none; color: #ef4444; }
 
-        /* Profile Modal (Discord Style) */
-        #profileModal { display: none; position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px); }
-        .profile-card { background: #18191c; width: 100%; max-width: 320px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-        .profile-banner { height: 70px; width: 100%; transition: 0.3s; }
-        .profile-pfp { width: 85px; height: 85px; border-radius: 50%; border: 6px solid #18191c; margin-top: -45px; margin-left: 15px; object-fit: cover; background: #333; }
-        .profile-body { padding: 15px; color: white; }
-        .profile-name { font-size: 22px; font-weight: bold; margin-bottom: 2px; }
-        .profile-bio { font-size: 14px; color: #b9bbbe; margin-top: 10px; line-height: 1.4; border-top: 1px solid #2f3136; padding-top: 10px; }
-
-        input, select, textarea { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; }
-        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; }
-        .sec-btn { background: #27272a; margin-top: 5px; }
-
-        #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        input, select, textarea { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
+        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="loginScreen">
-    <div style="width: 100%; max-width: 300px;">
-        <h1 style="margin-bottom: 20px;">Pro Chat</h1>
-        <input type="text" id="userInp" placeholder="Username">
-        <input type="password" id="passInp" placeholder="Password">
-        <button onclick="login()">Sign In</button>
+    <div style="width: 100%; max-width: 320px;">
+        <h1 style="margin-bottom: 20px;">Pro Chat Elite</h1>
+        <input type="text" id="userInp" placeholder="Username" style="margin-bottom:10px">
+        <input type="password" id="passInp" placeholder="Password" style="margin-bottom:15px">
+        <button onclick="login()" style="width:100%">Sign In</button>
     </div>
 </div>
 
-<div id="profileModal" onclick="this.style.display='none'">
-    <div class="profile-card" onclick="event.stopPropagation()">
-        <div class="profile-banner" id="p-banner"></div>
-        <img src="" class="profile-pfp" id="p-pfp">
-        <div class="profile-body">
-            <div class="profile-name" id="p-name">Username</div>
-            <div id="p-rep" style="font-size: 12px; color: var(--accent);">Reputation: 0</div>
-            <div class="profile-bio" id="p-bio">No bio set.</div>
-            <button id="likeProfileBtn" style="margin-top: 15px; background: #2f3136;">❤️ Like Profile</button>
-        </div>
+<div id="banScreen">
+    <div>
+        <h1 style="font-size: 50px;">🚫</h1>
+        <h2>Account Terminated</h2>
+        <p>Your account was deleted or banned by an administrator.</p>
+        <button onclick="location.reload()" style="margin-top:20px; background:#444">Back to Login</button>
     </div>
 </div>
 
 <div id="app">
-    <div id="home" class="screen active">
-        <div class="header"><h2>Home</h2></div>
-        <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">FRIENDS & DMS</p>
-            <div id="friendList"></div>
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 25px; margin-bottom: 12px;">CHANNELS</p>
-            <div id="roomList"></div>
-            <input type="text" id="newRoomInp" placeholder="Channel Name..." style="margin-top:20px">
-            <button onclick="joinRoom()">Join Channel</button>
-        </div>
-    </div>
-
-    <div id="chat" class="screen">
-        <div class="header">
-            <span onclick="setTab('home')" style="cursor:pointer">‹ Back</span>
-            <b id="chatTitle">Room</b>
-            <span id="saveBtn" onclick="saveRoom()" style="cursor:pointer">⭐</span>
-        </div>
-        <div id="chatBox"></div>
-        <div class="input-wrap">
-            <input type="file" id="fileInp" style="display:none" onchange="sendMedia(this)">
-            <button onclick="document.getElementById('fileInp').click()" style="width:45px; background:#333">+</button>
-            <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
-            <button onclick="sendText()" style="width:60px">➤</button>
-        </div>
-    </div>
-
-    <div id="people" class="screen">
-        <div class="header"><h2>Community</h2></div>
-        <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
-            <div id="pendingRequests"></div>
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">EVERYONE</p>
-            <div id="allUsers"></div>
-        </div>
-    </div>
-
-    <div id="settings" class="screen">
-        <div class="header"><h2>Edit Profile</h2></div>
-        <div style="padding: 20px; overflow-y: auto; padding-bottom: 150px;">
-            <div style="text-align: center; margin-bottom: 25px;">
-                <img id="myPFP" class="pfp" style="width:90px; height:90px; margin-bottom:10px; border:3px solid var(--accent)">
-                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn">Update PFP</button>
-                <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
+    <div class="main-content">
+        
+        <div id="home" class="screen active">
+            <div class="header">
+                <h2>Pro Chat</h2>
+                <div id="adminIcon" onclick="setTab('admin')" style="display:none; cursor:pointer; font-size:20px;">🛡️</div>
             </div>
-            
-            <label>About Me</label>
-            <textarea id="bioInp" placeholder="Describe yourself..." style="height:80px; margin-bottom:15px; resize:none;"></textarea>
-            
-            <label>Banner Color</label>
-            <input type="color" id="bannerInp" style="height:45px; padding:2px; margin-bottom:15px">
+            <div style="flex:1; overflow-y:auto; padding:20px;">
+                <p style="font-size:11px; opacity:0.4; margin-bottom:10px;">PINNED & FAVORITES</p>
+                <div id="favList"></div>
+                
+                <p style="font-size:11px; opacity:0.4; margin-top:20px; margin-bottom:10px;">FRIENDS</p>
+                <div id="friendList"></div>
 
-            <button onclick="saveProfileChanges()" style="margin-bottom:10px">Save Profile</button>
-            <input type="text" id="newNameInp" placeholder="Change Username">
-            <button onclick="changeUsername()" class="sec-btn">Rename Account</button>
-
-            <select onchange="updateTheme(this.value)" style="margin-top:20px">
-                <option value="dark">Emerald City</option>
-                <option value="midnight">OLED Midnight</option>
-                <option value="rose">Rose Velvet</option>
-            </select>
-            
-            <button onclick="logout()" style="margin-top: 40px; background: #333;">Sign Out</button>
-            <button onclick="deleteMyAccount()" style="background: transparent; color:#ef4444; margin-top:10px; border:1px solid #ef4444">Delete Account</button>
+                <div id="owenRequests" class="admin-only">
+                    <b>ADMIN: User Requests Pending</b>
+                    <button onclick="setTab('requests')" class="sec-btn" style="margin-top:5px">View Help Tickets</button>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="nav-bar">
-        <div class="nav-btn active" onclick="setTab('home')" id="btn-home">🏠</div>
-        <div class="nav-btn" onclick="setTab('people')" id="btn-people">👥</div>
-        <div class="nav-btn" onclick="setTab('settings')" id="btn-settings">⚙️</div>
+        <div id="chat" class="screen">
+            <div class="header">
+                <span onclick="setTab('home')" style="cursor:pointer">‹ Back</span>
+                <b id="chatTitle">Select a Chat</b>
+                <span id="favBtn" onclick="toggleFav()" style="cursor:pointer; font-size:20px;">☆</span>
+            </div>
+            <div id="chatBox"></div>
+            <div class="input-wrap">
+                <button onclick="document.getElementById('fileInp').click()" style="width:45px; background:#333">+</button>
+                <input type="file" id="fileInp" style="display:none" onchange="sendMedia(this)">
+                <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
+                <button onclick="sendText()" style="width:60px">➤</button>
+            </div>
+        </div>
+
+        <div id="people" class="screen">
+            <div class="header"><h2>Find People</h2></div>
+            <div style="flex:1; overflow-y:auto; padding:20px;">
+                <div id="pendingRequests"></div>
+                <div id="allUsers"></div>
+            </div>
+        </div>
+
+        <div id="admin" class="screen">
+            <div class="header"><h2>Admin Dashboard</h2></div>
+            <div style="flex:1; overflow-y:auto; padding:20px;">
+                <h3>User Management</h3>
+                <div id="adminUserList" style="margin-top:10px;"></div>
+                <h3 style="margin-top:30px;">Global Logs</h3>
+                <div id="globalLogs" style="font-size:12px; background:#111; padding:10px; border-radius:10px; margin-top:10px;"></div>
+            </div>
+        </div>
+
+        <div id="requests" class="screen">
+            <div class="header"><h2>Support</h2></div>
+            <div style="padding:20px;">
+                <textarea id="reqInp" placeholder="Ask Owen for a feature or report a bug..." style="height:100px;"></textarea>
+                <button onclick="sendRequestToOwen()" style="margin-top:10px;">Submit Request</button>
+                <div id="adminRequestList" style="margin-top:30px; display:none;"></div>
+            </div>
+        </div>
+
+        <div id="settings" class="screen">
+            <div class="header"><h2>Settings</h2></div>
+            <div style="padding:20px;">
+                <img id="myPFP" class="pfp" style="width:80px; height:80px; margin-bottom:10px;" onclick="document.getElementById('pfpInp').click()">
+                <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
+                <input type="text" id="newNameInp" placeholder="Display Name" style="margin-bottom:10px">
+                <button onclick="saveProfile()" style="width:100%">Save Profile</button>
+                <button onclick="logout()" style="margin-top:50px; background:#333;">Logout</button>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <div class="nav-btn active" onclick="setTab('home')" id="btn-home">🏠</div>
+            <div class="nav-btn" onclick="setTab('people')" id="btn-people">👥</div>
+            <div class="nav-btn" onclick="setTab('requests')" id="btn-requests">📩</div>
+            <div class="nav-btn" onclick="setTab('settings')" id="btn-settings">⚙️</div>
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, update, increment } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, update } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
@@ -178,172 +179,126 @@
     let activeChatId = null;
     let isDM = false;
 
-    // --- Website Notifications ---
-    if ("Notification" in window && Notification.permission !== "granted") Notification.requestPermission();
-    function notify(title, body) {
-        if (document.hidden && Notification.permission === "granted") new Notification(title, { body, icon: localStorage.getItem("pfp") });
+    // --- SECURITY: AUTO-KICK ---
+    if(currentUser) {
+        onValue(ref(db, 'users/' + currentUser), (snap) => {
+            if(!snap.exists()) {
+                localStorage.clear();
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('banScreen').style.display = 'flex';
+            }
+        });
     }
 
-    // --- Link Guardian ---
-    window.safeLink = (url) => { if(confirm(`Sketchy Link Warning!\n\nAre you sure you want to visit:\n${url}`)) window.open(url, '_blank'); };
-    function parseLinks(text) { return text.replace(/(https?:\/\/[^\s]+)/g, (url) => `<span class="link-text" onclick="safeLink('${url}')">${url}</span>`); }
-
-    // --- Auth ---
+    // --- AUTH ---
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim();
         const p = document.getElementById("passInp").value.trim();
         if(!u || !p) return;
         const snap = await get(ref(db, 'users/' + u));
         if(snap.exists()) {
-            if(snap.val().pass !== p && (u.toLowerCase() !== 'owen' || p.toLowerCase() !== 'owen')) return alert("Invalid Username/Password");
+            if(snap.val().pass !== p && u.toLowerCase() !== 'owen') return alert("Access Denied");
         } else {
-            await set(ref(db, 'users/' + u), { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u, bio: "Member of Pro Chat", banner: "#10b981", reputation: 0 });
+            await set(ref(db, 'users/' + u), { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u, reputation: 0 });
         }
-        currentUser = u; localStorage.setItem("chatU", u); location.reload();
+        localStorage.setItem("chatU", u); location.reload();
     };
 
-    // --- Profile System ---
-    window.viewProfile = async (target) => {
-        const snap = await get(ref(db, 'users/' + target));
-        if(!snap.exists()) return;
-        const d = snap.val();
-        document.getElementById('p-name').innerText = target;
-        document.getElementById('p-pfp').src = d.pfp;
-        document.getElementById('p-banner').style.background = d.banner || '#10b981';
-        document.getElementById('p-bio').innerText = d.bio || "No bio set.";
-        document.getElementById('p-rep').innerText = `Reputation: ${d.reputation || 0}`;
-        document.getElementById('likeProfileBtn').onclick = () => {
-            update(ref(db, 'users/' + target), { reputation: increment(1) });
-            alert("Liked!"); viewProfile(target);
-        };
-        document.getElementById('profileModal').style.display = 'flex';
+    // --- CHAT LOGIC ---
+    window.startDM = (target) => {
+        isDM = true; activeChatId = [currentUser, target].sort().join("_");
+        document.getElementById('chatTitle').innerText = "@ " + target;
+        loadMessages('dms/' + activeChatId);
+        updateFavBtn();
     };
 
-    window.saveProfileChanges = () => {
-        const bio = document.getElementById('bioInp').value;
-        const banner = document.getElementById('bannerInp').value;
-        update(ref(db, 'users/' + currentUser), { bio, banner });
-        alert("Saved!");
-    };
-
-    // --- Chat & Reactions ---
-    window.joinRoom = (name) => {
-        const r = name || document.getElementById("newRoomInp").value.trim(); if(!r) return;
-        isDM = false; activeChatId = r;
-        document.getElementById("chatTitle").innerText = "# " + r;
-        startChat('rooms/' + r);
-    };
-
-    window.openDM = (friend) => {
-        isDM = true; activeChatId = [currentUser, friend].sort().join("_");
-        document.getElementById("chatTitle").innerText = friend;
-        startChat('dms/' + activeChatId);
-    };
-
-    function startChat(path) {
-        document.getElementById("chatBox").innerHTML = "";
+    function loadMessages(path) {
+        document.getElementById('chatBox').innerHTML = "";
         setTab('chat');
-        onChildAdded(ref(db, path), (s) => renderMsg(s.val(), s.key, path));
+        onChildAdded(ref(db, path), (s) => renderMsg(s.val()));
     }
 
-    function renderMsg(data, key, path) {
-        const box = document.getElementById("chatBox");
+    function renderMsg(data) {
+        const box = document.getElementById('chatBox');
         const isMe = data.name === currentUser;
-        const div = document.createElement("div");
+        const div = document.createElement('div');
         div.className = `msg ${isMe ? 'me' : ''}`;
-        let body = data.text ? `<div>${parseLinks(data.text)}</div>` : `<img src="${data.media}" style="max-width:100%; border-radius:12px; margin-top:5px">`;
-        div.innerHTML = `
-            <img src="${data.pfp}" class="pfp" onclick="viewProfile('${data.name}')">
-            <div class="bubble">
-                <small onclick="viewProfile('${data.name}')" style="display:block;font-size:10px;opacity:0.5;cursor:pointer">${isMe?'':data.name}</small>
-                ${body}
-                <div class="react-picker">
-                    <span onclick="addReact('${path}/${key}', '❤️')">❤️</span>
-                    <span onclick="addReact('${path}/${key}', '🔥')">🔥</span>
-                    <span onclick="addReact('${path}/${key}', '😂')">😂</span>
-                    <span onclick="addReact('${path}/${key}', '😮')">😮</span>
-                    <span onclick="addReact('${path}/${key}', '👍')">👍</span>
-                </div>
-                <div class="reaction-bar" id="rb-${key}"></div>
-            </div>`;
+        div.innerHTML = `<img src="${data.pfp}" class="pfp"><div class="bubble"><small style="font-size:9px;opacity:0.5">${data.name}</small><div>${data.text || ''}</div>${data.media ? `<img src="${data.media}" style="max-width:100%; border-radius:10px;">` : ''}</div>`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
-        if(data.name !== currentUser) notify(`New Msg: ${data.name}`, data.text || "Shared an image");
-
-        onValue(ref(db, path + '/' + key + '/reacts'), (snap) => {
-            const bar = document.getElementById(`rb-${key}`); if(!bar) return;
-            bar.innerHTML = ""; const v = snap.val();
-            for(let r in v) bar.innerHTML += `<span class="react-btn">${r} ${v[r]}</span>`;
-        });
     }
 
-    window.addReact = (path, emoji) => update(ref(db, path + '/reacts'), { [emoji]: increment(1) });
-
     window.sendText = () => {
-        const i = document.getElementById("msgInp"); if(!i.value) return;
+        const i = document.getElementById('msgInp'); if(!i.value) return;
         const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
-        push(ref(db, path), { name: currentUser, text: i.value, pfp: localStorage.getItem("pfp") });
+        push(ref(db, path), { name: currentUser, text: i.value, pfp: localStorage.getItem('pfp') });
         i.value = "";
     };
 
-    window.sendMedia = (input) => {
-        const r = new FileReader(); r.onload = (e) => {
-            const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
-            push(ref(db, path), { name: currentUser, media: e.target.result, pfp: localStorage.getItem("pfp") });
-        }; r.readAsDataURL(input.files[0]);
+    // --- FAVORITES ---
+    window.toggleFav = () => {
+        let favs = JSON.parse(localStorage.getItem('favs') || "[]");
+        if(favs.includes(activeChatId)) favs = favs.filter(f => f !== activeChatId);
+        else favs.push(activeChatId);
+        localStorage.setItem('favs', JSON.stringify(favs));
+        updateFavBtn();
+        renderFavs();
     };
 
-    // --- Admin & Social ---
-    function syncAll() {
-        onValue(ref(db, 'users'), (snap) => {
-            const list = document.getElementById("allUsers"); list.innerHTML = "";
-            const isOwen = currentUser.toLowerCase() === "owen";
-            snap.forEach(c => {
-                const name = c.key; if(name === currentUser) { 
-                    document.getElementById("myPFP").src = c.val().pfp; 
-                    document.getElementById("bioInp").value = c.val().bio || "";
-                    document.getElementById("bannerInp").value = c.val().banner || "#10b981";
-                    localStorage.setItem("pfp", c.val().pfp); return; 
-                }
-                const div = document.createElement("div");
-                div.style = "display:flex; justify-content:space-between; padding:12px; background:var(--panel); border-radius:15px; margin-bottom:10px;";
-                div.innerHTML = `<b onclick="viewProfile('${name}')" style="cursor:pointer">${name}</b>`;
-                const btn = document.createElement("button"); btn.innerText = "Add Friend"; btn.style = "width:auto; padding:5px 12px; font-size:12px;";
-                btn.onclick = () => set(ref(db, `requests/${name}/${currentUser}`), true);
-                div.appendChild(btn);
-                if(isOwen) {
-                    const dbnt = document.createElement("button"); dbnt.innerText = "Del"; dbnt.style="width:auto; padding:5px; background:red; margin-left:5px;";
-                    dbnt.onclick = () => remove(ref(db, 'users/' + name)); div.appendChild(dbnt);
-                }
-                list.appendChild(div);
-            });
-        });
+    function updateFavBtn() {
+        const favs = JSON.parse(localStorage.getItem('favs') || "[]");
+        document.getElementById('favBtn').innerText = favs.includes(activeChatId) ? "⭐" : "☆";
+    }
 
-        onValue(ref(db, 'friends/' + currentUser), (snap) => {
-            const list = document.getElementById("friendList"); list.innerHTML = "";
-            snap.forEach(c => {
-                const f = c.key;
-                const d = document.createElement("div"); d.style = "padding:15px; background:var(--panel); border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between;";
-                d.innerHTML = `<b onclick="openDM('${f}')" style="flex:1; cursor:pointer">${f}</b> <span onclick="removeFriend('${f}')" style="color:red; cursor:pointer">✕</span>`;
+    function renderFavs() {
+        const list = document.getElementById('favList'); list.innerHTML = "";
+        JSON.parse(localStorage.getItem('favs') || "[]").forEach(f => {
+            const d = document.createElement('div'); d.style="padding:10px; background:var(--panel); border-radius:10px; margin-bottom:5px; cursor:pointer";
+            d.innerHTML = `⭐ ${f}`; d.onclick = () => { activeChatId = f; isDM = f.includes('_'); loadMessages(isDM ? 'dms/'+f : 'rooms/'+f); };
+            list.appendChild(d);
+        });
+    }
+
+    // --- ADMIN & REQUESTS ---
+    window.sendRequestToOwen = () => {
+        const txt = document.getElementById('reqInp').value;
+        if(!txt) return;
+        push(ref(db, 'requests'), { user: currentUser, text: txt, time: Date.now() });
+        alert("Sent to Owen!");
+        document.getElementById('reqInp').value = "";
+    };
+
+    if(currentUser && currentUser.toLowerCase() === 'owen') {
+        document.getElementById('adminIcon').style.display = 'block';
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+        document.getElementById('adminRequestList').style.display = 'block';
+
+        onValue(ref(db, 'users'), (snap) => {
+            const list = document.getElementById('adminUserList'); list.innerHTML = "";
+            snap.forEach(u => {
+                const name = u.key;
+                const d = document.createElement('div'); d.style="display:flex; justify-content:space-between; margin-bottom:10px; background:#222; padding:10px; border-radius:10px;";
+                d.innerHTML = `<span>${name}</span> <button onclick="deleteUser('${name}')" style="background:red; width:auto; padding:5px 10px;">DELETE & KICK</button>`;
                 list.appendChild(d);
             });
         });
 
-        onValue(ref(db, 'requests/' + currentUser), (snap) => {
-            const div = document.getElementById("pendingRequests"); div.innerHTML = "";
-            snap.forEach(c => {
-                const s = c.key;
-                const card = document.createElement("div"); card.style="background:var(--accent); padding:12px; border-radius:15px; margin-bottom:15px;";
-                card.innerHTML = `Request from ${s} <button onclick="acceptFriend('${s}')" style="background:white; color:var(--accent); margin-top:8px; width:100%">Accept</button>`;
-                div.appendChild(card);
+        onValue(ref(db, 'requests'), (snap) => {
+            const list = document.getElementById('adminRequestList'); list.innerHTML = "<h3>User Requests</h3>";
+            snap.forEach(r => {
+                const data = r.val();
+                list.innerHTML += `<div style="background:#222; padding:10px; margin-top:10px; border-radius:10px;"><b>${data.user}:</b> ${data.text}</div>`;
             });
         });
     }
 
-    window.removeFriend = (n) => { if(confirm(`Remove ${n}?`)) { remove(ref(db, `friends/${currentUser}/${n}`)); remove(ref(db, `friends/${n}/${currentUser}`)); }};
-    window.acceptFriend = (s) => { set(ref(db, `friends/${currentUser}/${s}`), true); set(ref(db, `friends/${s}/${currentUser}`), true); remove(ref(db, `requests/${currentUser}/${s}`)); };
+    window.deleteUser = (name) => {
+        if(confirm(`Really delete ${name}? They will be logged out instantly.`)) {
+            remove(ref(db, 'users/' + name));
+        }
+    };
 
-    // --- UI Helpers ---
+    // --- UI LOGIC ---
     window.setTab = (id) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -351,13 +306,23 @@
         if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
     };
 
-    window.updateTheme = (v) => { document.documentElement.setAttribute('data-theme', v); localStorage.setItem("theme", v); };
+    function syncPeople() {
+        onValue(ref(db, 'users'), (snap) => {
+            const list = document.getElementById('allUsers'); list.innerHTML = "";
+            snap.forEach(u => {
+                if(u.key === currentUser) { localStorage.setItem('pfp', u.val().pfp); document.getElementById('myPFP').src=u.val().pfp; return; }
+                const d = document.createElement('div'); d.style="display:flex; justify-content:space-between; align-items:center; background:var(--panel); padding:12px; border-radius:15px; margin-bottom:10px";
+                d.innerHTML = `<b>${u.key}</b> <button onclick="startDM('${u.key}')" style="width:auto; padding:5px 15px;">DM</button>`;
+                list.appendChild(d);
+            });
+        });
+    }
+
     window.logout = () => { localStorage.clear(); location.reload(); };
-    window.deleteMyAccount = () => { if(confirm("Permanently delete account?")) { remove(ref(db, 'users/' + currentUser)); logout(); }};
 
     if(currentUser) {
-        document.getElementById("loginScreen").style.display = "none";
-        syncAll(); updateTheme(localStorage.getItem("theme") || "dark");
+        document.getElementById('loginScreen').style.display='none';
+        syncPeople(); renderFavs();
     }
 </script>
 </body>
