@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Chat v4</title>
+    <title>Pro Chat - Elite</title>
     <style>
         :root {
             --bg: #0b141a; --sidebar: #111b21; --panel: #202c33;
             --accent: #00a884; --text: #e9edef; --msg-me: #005c4b; --msg-them: #202c33;
+            --error: #ef5350;
         }
         [data-theme="light"] {
             --bg: #f0f2f5; --sidebar: #ffffff; --panel: #f0f2f5;
@@ -23,63 +24,78 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; transition: 0.3s; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; transition: 0.3s; overflow: hidden; }
 
-        #sidebar { width: 320px; background: var(--sidebar); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
-        #mainContent { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
+        /* Login & Feedback */
+        #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
+        .login-card { width: 320px; text-align: center; padding: 30px; background: var(--sidebar); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .error-msg { color: var(--error); font-size: 13px; margin-bottom: 10px; display: none; }
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-8px);} 75% {transform: translateX(8px);} }
 
-        .header { padding: 15px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .pfp { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #3b4a54; }
+        #sidebar { width: 350px; background: var(--sidebar); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
+        #mainContent { flex: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; }
+
+        .header { padding: 15px 20px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; }
+        .pfp { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #3b4a54; border: 2px solid var(--accent); }
         
-        .scroll-v { flex: 1; overflow-y: auto; padding: 10px; }
-        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 5px; background: rgba(255,255,255,0.03); }
+        .scroll-v { flex: 1; overflow-y: auto; padding: 15px; }
+        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; background: rgba(255,255,255,0.03); transition: 0.2s; }
+        .list-item:hover { background: rgba(255,255,255,0.08); }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .online { background: #4caf50; }
+        .online { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
         .offline { background: #8696a0; }
 
         .screen { display: none; flex-direction: column; height: 100%; }
         .screen.active { display: flex; }
 
-        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; background-color: var(--bg); }
-        .msg { padding: 10px 14px; border-radius: 12px; max-width: 75%; font-size: 15px; }
-        .msg.me { background: var(--msg-me); align-self: flex-end; }
-        .msg.other { background: var(--msg-them); align-self: flex-start; }
+        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background-image: linear-gradient(var(--bg), var(--bg)), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: saturation; }
+        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .msg.me { background: var(--msg-me); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .msg.other { background: var(--msg-them); align-self: flex-start; border-bottom-left-radius: 4px; }
 
-        input, select { background: #2a3942; border: 1px solid #3b4a54; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; }
-        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .del-btn { background: #ef5350; font-size: 10px; padding: 4px 8px; }
-
-        #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .admin-box { background: rgba(239, 83, 80, 0.1); border: 1px solid #ef5350; padding: 10px; border-radius: 10px; margin-top: 20px; }
+        input, select { background: #2a3942; border: 1px solid #3b4a54; color: white; padding: 14px; border-radius: 10px; width: 100%; margin-bottom: 12px; font-size: 16px; outline: none; }
+        button { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        
+        /* Admin Styling */
+        .admin-badge { background: #ef5350; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+        .admin-card { background: rgba(239, 83, 80, 0.05); border: 1px solid rgba(239, 83, 80, 0.2); padding: 15px; border-radius: 15px; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div id="loginOverlay">
-    <div style="width: 300px; text-align: center;">
-        <h1>Pro Chat</h1><br>
+    <div class="login-card" id="loginBox">
+        <h1 style="margin-bottom: 5px;">Pro Chat</h1>
+        <p style="color: gray; font-size: 14px; margin-bottom: 20px;">Connect Instantly</p>
+        <div id="authError" class="error-msg"></div>
         <input type="text" id="regUser" placeholder="Username">
         <input type="password" id="regPass" placeholder="Password">
-        <button onclick="handleAuth()" style="width:100%">Sign In</button>
+        <button onclick="handleAuth()" style="width:100%">Enter Workspace</button>
     </div>
 </div>
 
 <div id="sidebar">
     <div class="header">
-        <img id="myPFP" class="pfp" src="" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=user'">
-        <b id="myName">User</b>
-        <button onclick="showScreen('settingsScreen')" style="background:transparent; font-size:18px">⚙️</button>
+        <div style="display:flex; align-items:center; gap:10px">
+            <img id="myPFP" class="pfp" src="">
+            <div>
+                <b id="myName">User</b>
+                <span id="owenBadge" class="admin-badge" style="display:none">ADMIN</span>
+            </div>
+        </div>
+        <button onclick="showScreen('settingsScreen')" style="background:transparent; font-size:22px">⚙️</button>
     </div>
     
     <div class="scroll-v">
-        <p style="font-size:11px; color:var(--accent); margin: 10px 5px;">SAVED GROUPS</p>
+        <p style="font-size:11px; color:var(--accent); font-weight:bold; letter-spacing:1px; margin-bottom:10px;">QUICK ACCESS</p>
         <div id="savedRoomsList"></div>
         
-        <p style="font-size:11px; color:var(--accent); margin: 20px 5px 10px;">USERS</p>
+        <p style="font-size:11px; color:var(--accent); font-weight:bold; letter-spacing:1px; margin: 20px 0 10px;">GLOBAL DIRECTORY</p>
         <div id="userList"></div>
 
-        <div id="adminPanel" style="display:none" class="admin-box">
-            <p style="font-size:11px; color:#ef5350; font-weight:bold;">SYSTEM ADMIN (OWEN)</p>
+        <div id="adminPanel" style="display:none" class="admin-card">
+            <p style="font-size:11px; color:#ef5350; font-weight:bold; margin-bottom:10px;">SYSTEM OVERRIDE</p>
             <div id="adminUserList"></div>
         </div>
     </div>
@@ -88,32 +104,39 @@
 <div id="mainContent">
     <div id="homeScreen" class="screen active">
         <div class="header"><h2>Dashboard</h2></div>
-        <div style="padding: 20px;">
-            <input type="text" id="roomInp" placeholder="Enter Room Name...">
-            <button onclick="joinRoom()" style="width:100%">Join Group</button>
+        <div style="padding: 30px; max-width: 500px;">
+            <h3 style="margin-bottom:10px">Join a Room</h3>
+            <input type="text" id="roomInp" placeholder="Room Name (e.g. Gaming)">
+            <button onclick="joinRoom()" style="width:100%">Connect Now</button>
         </div>
     </div>
 
     <div id="chatScreen" class="screen">
         <div class="header">
-            <button onclick="showScreen('homeScreen')" style="background:transparent; font-size:20px">‹</button>
-            <h2 id="chatTitle">Room</h2>
-            <button onclick="saveRoom()" style="background:transparent">⭐</button>
+            <div style="display:flex; align-items:center; gap:15px">
+                <span onclick="showScreen('homeScreen')" style="font-size:28px; cursor:pointer">‹</span>
+                <h2 id="chatTitle">Room</h2>
+            </div>
+            <button onclick="saveRoom()" style="background:transparent; font-size:20px">⭐</button>
         </div>
         <div id="chatBox"></div>
-        <div class="header">
-            <input type="text" id="msgInp" placeholder="Type a message..." style="margin:0; flex:1; margin-right:10px" onkeypress="if(event.key==='Enter') sendMsg()">
-            <button onclick="sendMsg()">Send</button>
+        <div class="header" style="padding: 10px 20px;">
+            <input type="text" id="msgInp" placeholder="Message..." style="margin:0; flex:1; margin-right:10px" onkeypress="if(event.key==='Enter') sendMsg()">
+            <button onclick="sendMsg()" style="padding: 10px 20px;">Send</button>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen">
-        <div class="header"><h2>Settings</h2><button onclick="showScreen('homeScreen')">Done</button></div>
-        <div style="padding: 20px;">
-            <label>Profile Picture URL</label>
-            <input type="text" id="pfpUrlInp" placeholder="Link to image..." onchange="updatePFP(this.value)">
+        <div class="header"><h2>Settings</h2><button onclick="showScreen('homeScreen')" style="padding: 8px 15px;">Save</button></div>
+        <div class="scroll-v" style="max-width: 500px;">
+            <label style="display:block; margin-bottom:8px; font-weight:bold;">Profile Picture</label>
+            <div style="display:flex; gap:15px; align-items:center; margin-bottom:20px;">
+                <img id="settingsPFP" class="pfp" style="width:60px; height:60px;">
+                <input type="file" id="pfpFile" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+                <button onclick="document.getElementById('pfpFile').click()" style="background:var(--panel); font-size:14px;">Upload Photo</button>
+            </div>
             
-            <label>App Theme</label>
+            <label style="display:block; margin-bottom:8px; font-weight:bold;">Visual Theme</label>
             <select onchange="changeTheme(this.value)">
                 <option value="dark">Dark Mode</option>
                 <option value="light">Light Mode</option>
@@ -121,15 +144,15 @@
                 <option value="oled">OLED Black</option>
             </select>
 
-            <button onclick="logout()" style="width:100%; background:#8696a0; margin-top:20px">Logout</button>
-            <button onclick="deleteAccount()" style="width:100%; background:#ef5350; margin-top:10px">Delete My Account</button>
+            <button onclick="logout()" style="width:100%; background:var(--panel); color:var(--error); margin-top:30px">Sign Out</button>
+            <button onclick="deleteAccount()" style="width:100%; background:transparent; border:1px solid var(--error); color:var(--error); margin-top:10px; font-size:14px">Delete Account</button>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
@@ -145,47 +168,86 @@
     let room = null;
     let roomRef = null;
 
-    // --- Auth & Presence ---
+    // --- Authentication Engine ---
     window.handleAuth = async () => {
         const u = document.getElementById("regUser").value.trim();
         const p = document.getElementById("regPass").value.trim();
-        if(!u || !p) return;
+        const errorDiv = document.getElementById("authError");
+        const loginBox = document.getElementById("loginBox");
+
+        if(!u || !p) { showAuthError("Please enter both fields."); return; }
 
         const uRef = ref(db, 'users/' + u);
         const snap = await get(uRef);
-        if(snap.exists() && snap.val().pass !== p) return alert("Wrong password");
 
-        if(!snap.exists()) await set(uRef, { pass: p, pfp: `https://api.dicebear.com/7.x/bottts/svg?seed=${u}` });
+        if(snap.exists()) {
+            if(snap.val().pass !== p) {
+                showAuthError("Incorrect password for this user.");
+                loginBox.classList.add("shake");
+                setTimeout(() => loginBox.classList.remove("shake"), 400);
+                return;
+            }
+        } else {
+            // New Registration
+            await set(uRef, { pass: p, pfp: `https://api.dicebear.com/7.x/bottts/svg?seed=${u}` });
+        }
         
         user = u;
         localStorage.setItem("chatUser", u);
         initApp();
     };
 
+    function showAuthError(msg) {
+        const errorDiv = document.getElementById("authError");
+        errorDiv.innerText = msg;
+        errorDiv.style.display = "block";
+    }
+
+    // --- Core Initialization ---
     function initApp() {
-        document.getElementById("loginOverlay").style.display = "none";
+        document.getElementById("loginOverlay").style.opacity = "0";
+        setTimeout(() => document.getElementById("loginOverlay").style.display = "none", 500);
         document.getElementById("myName").innerText = user;
         
-        // Setup Presence
+        // Presence Logic
         const statusRef = ref(db, 'status/' + user);
-        const connectedRef = ref(db, '.info/connected');
-        onValue(connectedRef, (snap) => {
+        onValue(ref(db, '.info/connected'), (snap) => {
             if (snap.val() === true) {
                 onDisconnect(statusRef).set("offline");
                 set(statusRef, "online");
             }
         });
 
-        // Check for Admin
-        if(user === "Owen") document.getElementById("adminPanel").style.display = "block";
+        if(user === "Owen") {
+            document.getElementById("adminPanel").style.display = "block";
+            document.getElementById("owenBadge").style.display = "inline-block";
+        }
 
         loadGlobals();
         changeTheme(localStorage.getItem("chatTheme") || 'dark');
-        loadPFP();
         renderSaved();
     }
 
-    // --- Core Logic ---
+    // --- Profile Photo Handling ---
+    window.handleFileUpload = (input) => {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            set(ref(db, `users/${user}/pfp`), base64);
+            updatePFPUI(base64);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    function updatePFPUI(url) {
+        document.getElementById("myPFP").src = url;
+        document.getElementById("settingsPFP").src = url;
+        localStorage.setItem("chatPFP", url);
+    }
+
+    // --- Global Data Listeners ---
     function loadGlobals() {
         onValue(ref(db, 'users'), (snap) => {
             const list = document.getElementById("userList");
@@ -195,28 +257,23 @@
             snap.forEach(child => {
                 const name = child.key;
                 const data = child.val();
-                
-                // Track online status from the status node
+                if(name === user) updatePFPUI(data.pfp);
+
                 onValue(ref(db, 'status/' + name), (sSnap) => {
                     const status = sSnap.val() || "offline";
+                    const existingItem = document.getElementById("user-"+name);
+                    if(existingItem) existingItem.remove();
+
                     const item = document.createElement("div");
+                    item.id = "user-"+name;
                     item.className = "list-item";
-                    item.innerHTML = `
-                        <img class="pfp" src="${data.pfp}">
-                        <div style="flex:1"><b>${name}</b></div>
-                        <div class="status-dot ${status}"></div>
-                    `;
-                    
-                    // Add to lists (simple deduplication)
-                    const old = document.getElementById("u-"+name);
-                    if(old) old.remove();
-                    item.id = "u-"+name;
+                    item.innerHTML = `<img class="pfp" src="${data.pfp}"><div style="flex:1"><b>${name}</b></div><div class="status-dot ${status}"></div>`;
                     list.appendChild(item);
 
                     if(user === "Owen") {
                         const adminItem = document.createElement("div");
-                        adminItem.style = "display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px";
-                        adminItem.innerHTML = `<span>${name}</span> <button class="del-btn" onclick="sysDelete('${name}')">Delete</button>`;
+                        adminItem.style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;";
+                        adminItem.innerHTML = `<span style="font-size:13px">${name}</span><button class="admin-badge" style="background:#ef5350" onclick="sysDelete('${name}')">Delete</button>`;
                         adminList.appendChild(adminItem);
                     }
                 });
@@ -224,10 +281,11 @@
         });
     }
 
+    // --- Chat Logic ---
     window.joinRoom = (rName) => {
         room = rName || document.getElementById("roomInp").value.trim();
         if(!room) return;
-        document.getElementById("chatTitle").innerText = room;
+        document.getElementById("chatTitle").innerText = "# " + room;
         document.getElementById("chatBox").innerHTML = "";
         showScreen('chatScreen');
         if(roomRef) off(roomRef);
@@ -247,42 +305,15 @@
         const div = document.createElement("div");
         const isMe = data.name === user;
         div.className = `msg ${isMe ? 'me' : 'other'}`;
-        div.innerHTML = `<b style="font-size:10px; display:block; color:var(--accent)">${isMe ? '' : data.name}</b>${data.text}`;
+        div.innerHTML = `<b style="font-size:10px; display:block; margin-bottom:4px; color:${isMe ? '#fff' : 'var(--accent)'}">${isMe ? '' : data.name}</b>${data.text}`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
-    // --- Settings & Admin ---
+    // --- Utilities ---
     window.changeTheme = (t) => {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem("chatTheme", t);
-    };
-
-    window.updatePFP = (url) => {
-        set(ref(db, `users/${user}/pfp`), url);
-        localStorage.setItem("chatPFP", url);
-        document.getElementById("myPFP").src = url;
-    };
-
-    async function loadPFP() {
-        const snap = await get(ref(db, `users/${user}/pfp`));
-        const url = snap.val() || `https://api.dicebear.com/7.x/bottts/svg?seed=${user}`;
-        document.getElementById("myPFP").src = url;
-        localStorage.setItem("chatPFP", url);
-    }
-
-    window.sysDelete = (target) => {
-        if(confirm(`Delete ${target}?`)) {
-            remove(ref(db, 'users/' + target));
-            remove(ref(db, 'status/' + target));
-        }
-    };
-
-    window.deleteAccount = () => {
-        if(confirm("Permanently delete your account?")) {
-            remove(ref(db, 'users/' + user));
-            logout();
-        }
     };
 
     window.saveRoom = () => {
@@ -301,11 +332,25 @@
         saved.forEach(r => {
             const div = document.createElement("div");
             div.className = "list-item";
-            div.innerHTML = `<div style="background:var(--accent); width:30px; height:30px; border-radius:8px; display:grid; place-items:center">#</div><b>${r}</b>`;
+            div.innerHTML = `<div style="background:var(--accent); width:32px; height:32px; border-radius:8px; display:grid; place-items:center; font-weight:bold">#</div><b>${r}</b>`;
             div.onclick = () => joinRoom(r);
             list.appendChild(div);
         });
     }
+
+    window.sysDelete = (target) => {
+        if(confirm(`Erase all data for ${target}?`)) {
+            remove(ref(db, 'users/' + target));
+            remove(ref(db, 'status/' + target));
+        }
+    };
+
+    window.deleteAccount = () => {
+        if(confirm("Permanently delete your profile? This cannot be undone.")) {
+            remove(ref(db, 'users/' + user));
+            logout();
+        }
+    };
 
     window.showScreen = (id) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
