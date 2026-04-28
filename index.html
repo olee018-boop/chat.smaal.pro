@@ -3,156 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Chat - Elite</title>
+    <title>Pro Chat - Ultra Media</title>
     <style>
         :root {
             --bg: #0b141a; --sidebar: #111b21; --panel: #202c33;
-            --accent: #00a884; --text: #e9edef; --msg-me: #005c4b; --msg-them: #202c33;
-            --error: #ef5350;
+            --accent: #00a884; --text: #e9edef; --msg-me: #005c4b;
         }
-        [data-theme="light"] {
-            --bg: #f0f2f5; --sidebar: #ffffff; --panel: #f0f2f5;
-            --accent: #00a884; --text: #111b21; --msg-me: #d9fdd3; --msg-them: #ffffff;
-        }
-        [data-theme="purple"] {
-            --bg: #1a1a2e; --sidebar: #16213e; --panel: #0f3460;
-            --accent: #e94560; --text: #e9edef; --msg-me: #e94560; --msg-them: #16213e;
-        }
-        [data-theme="oled"] {
-            --bg: #000000; --sidebar: #000000; --panel: #111111;
-            --accent: #ffffff; --text: #ffffff; --msg-me: #333333; --msg-them: #111111;
-        }
+        [data-theme="light"] { --bg: #f0f2f5; --sidebar: #ffffff; --panel: #f0f2f5; --accent: #00a884; --text: #111b21; --msg-me: #d9fdd3; }
+        [data-theme="purple"] { --bg: #1a1a2e; --sidebar: #16213e; --panel: #0f3460; --accent: #e94560; --text: #e9edef; --msg-me: #e94560; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; transition: 0.3s; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; overflow: hidden; transition: 0.5s ease; }
 
-        /* Login & Feedback */
-        #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
-        .login-card { width: 320px; text-align: center; padding: 30px; background: var(--sidebar); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .error-msg { color: var(--error); font-size: 13px; margin-bottom: 10px; display: none; }
-        .shake { animation: shake 0.4s; }
-        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-8px);} 75% {transform: translateX(8px);} }
+        /* Layout */
+        #sidebar { width: 350px; background: var(--sidebar); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; z-index: 10; }
+        #mainContent { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
 
-        #sidebar { width: 350px; background: var(--sidebar); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
-        #mainContent { flex: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; }
-
-        .header { padding: 15px 20px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; }
-        .pfp { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #3b4a54; border: 2px solid var(--accent); }
-        
-        .scroll-v { flex: 1; overflow-y: auto; padding: 15px; }
-        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; background: rgba(255,255,255,0.03); transition: 0.2s; }
-        .list-item:hover { background: rgba(255,255,255,0.08); }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .online { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
-        .offline { background: #8696a0; }
-
-        .screen { display: none; flex-direction: column; height: 100%; }
+        /* Animations */
+        .screen { display: none; flex-direction: column; height: 100%; animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .screen.active { display: flex; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background-image: linear-gradient(var(--bg), var(--bg)), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: saturation; }
-        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .msg.me { background: var(--msg-me); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .msg.other { background: var(--msg-them); align-self: flex-start; border-bottom-left-radius: 4px; }
-
-        input, select { background: #2a3942; border: 1px solid #3b4a54; color: white; padding: 14px; border-radius: 10px; width: 100%; margin-bottom: 12px; font-size: 16px; outline: none; }
-        button { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        /* Message Styling */
+        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+        .msg-container { display: flex; gap: 10px; max-width: 85%; animation: msgIn 0.3s ease; }
+        .msg-container.me { align-self: flex-end; flex-direction: row-reverse; }
         
-        /* Admin Styling */
-        .admin-badge { background: #ef5350; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
-        .admin-card { background: rgba(239, 83, 80, 0.05); border: 1px solid rgba(239, 83, 80, 0.2); padding: 15px; border-radius: 15px; margin-top: 15px; }
+        @keyframes msgIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .pfp-small { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+        
+        .bubble { 
+            padding: 10px 14px; border-radius: 18px; font-size: 15px; position: relative; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); color: white;
+        }
+        .me .bubble { background: var(--msg-me) !important; border-top-right-radius: 4px; }
+        .other .bubble { border-top-left-radius: 4px; }
+
+        .media-content { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; display: block; }
+
+        /* UI Elements */
+        .header { padding: 15px 20px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin: 0 10px 5px; }
+        .list-item:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
+        
+        .input-area { padding: 15px 20px; background: var(--panel); display: flex; gap: 10px; align-items: center; }
+        input[type="text"] { flex: 1; background: rgba(255,255,255,0.05); border: none; padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
+        
+        .btn-round { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent); color: white; cursor: pointer; display: grid; place-items: center; transition: 0.3s; }
+        .btn-round:hover { transform: rotate(90deg) scale(1.1); }
+        .btn-media { background: rgba(255,255,255,0.1); color: var(--text); }
+
+        #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .login-card { width: 340px; padding: 40px; background: var(--sidebar); border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
 <div id="loginOverlay">
-    <div class="login-card" id="loginBox">
-        <h1 style="margin-bottom: 5px;">Pro Chat</h1>
-        <p style="color: gray; font-size: 14px; margin-bottom: 20px;">Connect Instantly</p>
-        <div id="authError" class="error-msg"></div>
-        <input type="text" id="regUser" placeholder="Username">
-        <input type="password" id="regPass" placeholder="Password">
-        <button onclick="handleAuth()" style="width:100%">Enter Workspace</button>
+    <div class="login-card">
+        <h1 style="margin-bottom: 20px;">Pro Chat</h1>
+        <input type="text" id="regUser" placeholder="Username" style="width:100%; padding:15px; border-radius:15px; border:none; margin-bottom:10px; background:rgba(255,255,255,0.05); color:white;">
+        <input type="password" id="regPass" placeholder="Password" style="width:100%; padding:15px; border-radius:15px; border:none; margin-bottom:20px; background:rgba(255,255,255,0.05); color:white;">
+        <button onclick="handleAuth()" style="width:100%; padding:15px; border-radius:15px; background:var(--accent); color:white; border:none; font-weight:bold; cursor:pointer;">Launch App</button>
     </div>
 </div>
 
 <div id="sidebar">
     <div class="header">
-        <div style="display:flex; align-items:center; gap:10px">
-            <img id="myPFP" class="pfp" src="">
-            <div>
-                <b id="myName">User</b>
-                <span id="owenBadge" class="admin-badge" style="display:none">ADMIN</span>
-            </div>
-        </div>
-        <button onclick="showScreen('settingsScreen')" style="background:transparent; font-size:22px">⚙️</button>
+        <img id="myPFP" class="pfp-small" style="width:40px; height:40px" src="">
+        <b id="myName">User</b>
+        <button onclick="showScreen('settingsScreen')" style="background:transparent; border:none; font-size:20px; cursor:pointer">⚙️</button>
     </div>
-    
-    <div class="scroll-v">
-        <p style="font-size:11px; color:var(--accent); font-weight:bold; letter-spacing:1px; margin-bottom:10px;">QUICK ACCESS</p>
+    <div style="overflow-y:auto; flex:1">
+        <p style="padding:20px 20px 10px; font-size:11px; color:var(--accent); font-weight:bold;">SAVED CHATS</p>
         <div id="savedRoomsList"></div>
-        
-        <p style="font-size:11px; color:var(--accent); font-weight:bold; letter-spacing:1px; margin: 20px 0 10px;">GLOBAL DIRECTORY</p>
+        <p style="padding:20px 20px 10px; font-size:11px; color:var(--accent); font-weight:bold;">PEOPLE</p>
         <div id="userList"></div>
-
-        <div id="adminPanel" style="display:none" class="admin-card">
-            <p style="font-size:11px; color:#ef5350; font-weight:bold; margin-bottom:10px;">SYSTEM OVERRIDE</p>
-            <div id="adminUserList"></div>
-        </div>
     </div>
 </div>
 
 <div id="mainContent">
     <div id="homeScreen" class="screen active">
-        <div class="header"><h2>Dashboard</h2></div>
-        <div style="padding: 30px; max-width: 500px;">
-            <h3 style="margin-bottom:10px">Join a Room</h3>
-            <input type="text" id="roomInp" placeholder="Room Name (e.g. Gaming)">
-            <button onclick="joinRoom()" style="width:100%">Connect Now</button>
+        <div class="header"><h2>Home</h2></div>
+        <div style="padding:40px; text-align:center">
+            <h2 style="margin-bottom:20px">Welcome Back!</h2>
+            <input type="text" id="roomInp" placeholder="Enter Room Name..." style="max-width:300px; margin-bottom:10px">
+            <button onclick="joinRoom()" style="padding:12px 30px; border-radius:25px; background:var(--accent); border:none; color:white; font-weight:bold;">Join Room</button>
         </div>
     </div>
 
     <div id="chatScreen" class="screen">
         <div class="header">
             <div style="display:flex; align-items:center; gap:15px">
-                <span onclick="showScreen('homeScreen')" style="font-size:28px; cursor:pointer">‹</span>
+                <button onclick="showScreen('homeScreen')" style="background:transparent; border:none; color:white; font-size:25px; cursor:pointer">‹</button>
                 <h2 id="chatTitle">Room</h2>
             </div>
-            <button onclick="saveRoom()" style="background:transparent; font-size:20px">⭐</button>
+            <button onclick="saveRoom()" style="background:transparent; border:none; color:var(--accent); font-size:20px; cursor:pointer">⭐</button>
         </div>
         <div id="chatBox"></div>
-        <div class="header" style="padding: 10px 20px;">
-            <input type="text" id="msgInp" placeholder="Message..." style="margin:0; flex:1; margin-right:10px" onkeypress="if(event.key==='Enter') sendMsg()">
-            <button onclick="sendMsg()" style="padding: 10px 20px;">Send</button>
+        <div class="input-area">
+            <input type="file" id="mediaFile" style="display:none" accept="image/*,video/*" onchange="uploadMedia(this)">
+            <button class="btn-round btn-media" onclick="document.getElementById('mediaFile').click()">+</button>
+            <input type="text" id="msgInp" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <button class="btn-round" onclick="sendMsg()">➤</button>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen">
-        <div class="header"><h2>Settings</h2><button onclick="showScreen('homeScreen')" style="padding: 8px 15px;">Save</button></div>
-        <div class="scroll-v" style="max-width: 500px;">
-            <label style="display:block; margin-bottom:8px; font-weight:bold;">Profile Picture</label>
-            <div style="display:flex; gap:15px; align-items:center; margin-bottom:20px;">
-                <img id="settingsPFP" class="pfp" style="width:60px; height:60px;">
-                <input type="file" id="pfpFile" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
-                <button onclick="document.getElementById('pfpFile').click()" style="background:var(--panel); font-size:14px;">Upload Photo</button>
+        <div class="header"><h2>Profile Settings</h2><button onclick="showScreen('homeScreen')" style="background:transparent; border:none; color:var(--accent); font-weight:bold;">Done</button></div>
+        <div style="padding:30px">
+            <div style="display:flex; align-items:center; gap:20px; margin-bottom:30px">
+                <img id="setPFP" class="pfp-small" style="width:80px; height:80px" src="">
+                <input type="file" id="pfpUpload" style="display:none" onchange="updatePFP(this)">
+                <button onclick="document.getElementById('pfpUpload').click()" style="padding:10px 20px; border-radius:10px; background:var(--panel); border:1px solid var(--accent); color:white;">Change Photo</button>
             </div>
-            
-            <label style="display:block; margin-bottom:8px; font-weight:bold;">Visual Theme</label>
-            <select onchange="changeTheme(this.value)">
+            <label>App Theme</label>
+            <select onchange="changeTheme(this.value)" style="width:100%; padding:15px; border-radius:15px; background:var(--panel); color:white; border:none; margin-top:10px">
                 <option value="dark">Dark Mode</option>
                 <option value="light">Light Mode</option>
                 <option value="purple">Midnight Purple</option>
-                <option value="oled">OLED Black</option>
             </select>
-
-            <button onclick="logout()" style="width:100%; background:var(--panel); color:var(--error); margin-top:30px">Sign Out</button>
-            <button onclick="deleteAccount()" style="width:100%; background:transparent; border:1px solid var(--error); color:var(--error); margin-top:10px; font-size:14px">Delete Account</button>
+            <button onclick="logout()" style="margin-top:40px; width:100%; padding:15px; border:none; background:#ef5350; color:white; border-radius:15px; font-weight:bold;">Logout</button>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
@@ -168,120 +147,75 @@
     let room = null;
     let roomRef = null;
 
-    // --- Authentication Engine ---
+    // --- Helper: Generate Unique Color based on username ---
+    function getUserColor(name) {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return `hsl(${hash % 360}, 60%, 40%)`;
+    }
+
+    // --- Auth & Profile ---
     window.handleAuth = async () => {
         const u = document.getElementById("regUser").value.trim();
         const p = document.getElementById("regPass").value.trim();
-        const errorDiv = document.getElementById("authError");
-        const loginBox = document.getElementById("loginBox");
-
-        if(!u || !p) { showAuthError("Please enter both fields."); return; }
-
+        if(!u || !p) return;
         const uRef = ref(db, 'users/' + u);
         const snap = await get(uRef);
-
-        if(snap.exists()) {
-            if(snap.val().pass !== p) {
-                showAuthError("Incorrect password for this user.");
-                loginBox.classList.add("shake");
-                setTimeout(() => loginBox.classList.remove("shake"), 400);
-                return;
-            }
-        } else {
-            // New Registration
-            await set(uRef, { pass: p, pfp: `https://api.dicebear.com/7.x/bottts/svg?seed=${u}` });
-        }
-        
-        user = u;
-        localStorage.setItem("chatUser", u);
+        if(snap.exists() && snap.val().pass !== p) return alert("Wrong Password");
+        if(!snap.exists()) await set(uRef, { pass: p, pfp: `https://api.dicebear.com/7.x/bottts/svg?seed=${u}` });
+        user = u; localStorage.setItem("chatUser", u);
         initApp();
     };
 
-    function showAuthError(msg) {
-        const errorDiv = document.getElementById("authError");
-        errorDiv.innerText = msg;
-        errorDiv.style.display = "block";
-    }
-
-    // --- Core Initialization ---
     function initApp() {
-        document.getElementById("loginOverlay").style.opacity = "0";
-        setTimeout(() => document.getElementById("loginOverlay").style.display = "none", 500);
+        document.getElementById("loginOverlay").style.display = "none";
         document.getElementById("myName").innerText = user;
-        
-        // Presence Logic
-        const statusRef = ref(db, 'status/' + user);
-        onValue(ref(db, '.info/connected'), (snap) => {
-            if (snap.val() === true) {
-                onDisconnect(statusRef).set("offline");
-                set(statusRef, "online");
-            }
-        });
-
-        if(user === "Owen") {
-            document.getElementById("adminPanel").style.display = "block";
-            document.getElementById("owenBadge").style.display = "inline-block";
-        }
-
         loadGlobals();
         changeTheme(localStorage.getItem("chatTheme") || 'dark');
         renderSaved();
     }
 
-    // --- Profile Photo Handling ---
-    window.handleFileUpload = (input) => {
+    window.updatePFP = (input) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            set(ref(db, `users/${user}/pfp`), e.target.result);
+            localStorage.setItem("chatPFP", e.target.result);
+        };
+        reader.readAsDataURL(input.files[0]);
+    };
+
+    // --- Media Sharing ---
+    window.uploadMedia = (input) => {
         const file = input.files[0];
         if(!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
-            const base64 = e.target.result;
-            set(ref(db, `users/${user}/pfp`), base64);
-            updatePFPUI(base64);
+            const type = file.type.startsWith('video') ? 'video' : 'image';
+            push(ref(db, 'rooms/' + room), { name: user, media: e.target.result, mediaType: type, pfp: localStorage.getItem("chatPFP") });
         };
         reader.readAsDataURL(file);
     };
 
-    function updatePFPUI(url) {
-        document.getElementById("myPFP").src = url;
-        document.getElementById("settingsPFP").src = url;
-        localStorage.setItem("chatPFP", url);
-    }
-
-    // --- Global Data Listeners ---
+    // --- Core Logic ---
     function loadGlobals() {
         onValue(ref(db, 'users'), (snap) => {
             const list = document.getElementById("userList");
-            const adminList = document.getElementById("adminUserList");
-            list.innerHTML = ""; adminList.innerHTML = "";
-            
+            list.innerHTML = "";
             snap.forEach(child => {
-                const name = child.key;
                 const data = child.val();
-                if(name === user) updatePFPUI(data.pfp);
-
-                onValue(ref(db, 'status/' + name), (sSnap) => {
-                    const status = sSnap.val() || "offline";
-                    const existingItem = document.getElementById("user-"+name);
-                    if(existingItem) existingItem.remove();
-
-                    const item = document.createElement("div");
-                    item.id = "user-"+name;
-                    item.className = "list-item";
-                    item.innerHTML = `<img class="pfp" src="${data.pfp}"><div style="flex:1"><b>${name}</b></div><div class="status-dot ${status}"></div>`;
-                    list.appendChild(item);
-
-                    if(user === "Owen") {
-                        const adminItem = document.createElement("div");
-                        adminItem.style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;";
-                        adminItem.innerHTML = `<span style="font-size:13px">${name}</span><button class="admin-badge" style="background:#ef5350" onclick="sysDelete('${name}')">Delete</button>`;
-                        adminList.appendChild(adminItem);
-                    }
-                });
+                if(child.key === user) {
+                    document.getElementById("myPFP").src = data.pfp;
+                    document.getElementById("setPFP").src = data.pfp;
+                    localStorage.setItem("chatPFP", data.pfp);
+                }
+                const div = document.createElement("div");
+                div.className = "list-item";
+                div.innerHTML = `<img class="pfp-small" src="${data.pfp}"><b>${child.key}</b>`;
+                list.appendChild(div);
             });
         });
     }
 
-    // --- Chat Logic ---
     window.joinRoom = (rName) => {
         room = rName || document.getElementById("roomInp").value.trim();
         if(!room) return;
@@ -302,15 +236,35 @@
 
     function renderMsg(data) {
         const box = document.getElementById("chatBox");
-        const div = document.createElement("div");
         const isMe = data.name === user;
-        div.className = `msg ${isMe ? 'me' : 'other'}`;
-        div.innerHTML = `<b style="font-size:10px; display:block; margin-bottom:4px; color:${isMe ? '#fff' : 'var(--accent)'}">${isMe ? '' : data.name}</b>${data.text}`;
+        const div = document.createElement("div");
+        div.className = `msg-container ${isMe ? 'me' : 'other'}`;
+        
+        let content = data.text ? `<div>${data.text}</div>` : '';
+        if(data.media) {
+            content += data.mediaType === 'video' 
+                ? `<video src="${data.media}" class="media-content" controls></video>`
+                : `<img src="${data.media}" class="media-content" onclick="window.open(this.src)">`;
+        }
+
+        const color = isMe ? 'var(--msg-me)' : getUserColor(data.name);
+        
+        div.innerHTML = `
+            <img class="pfp-small" src="${data.pfp || ''}">
+            <div class="bubble" style="background:${color}">
+                <b style="font-size:10px; opacity:0.8; display:block; margin-bottom:3px">${isMe ? '' : data.name}</b>
+                ${content}
+            </div>
+        `;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
-    // --- Utilities ---
+    window.showScreen = (id) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    };
+
     window.changeTheme = (t) => {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem("chatTheme", t);
@@ -332,30 +286,11 @@
         saved.forEach(r => {
             const div = document.createElement("div");
             div.className = "list-item";
-            div.innerHTML = `<div style="background:var(--accent); width:32px; height:32px; border-radius:8px; display:grid; place-items:center; font-weight:bold">#</div><b>${r}</b>`;
+            div.innerHTML = `<div style="width:30px; height:30px; background:var(--accent); border-radius:8px; display:grid; place-items:center; font-weight:bold">#</div><b>${r}</b>`;
             div.onclick = () => joinRoom(r);
             list.appendChild(div);
         });
     }
-
-    window.sysDelete = (target) => {
-        if(confirm(`Erase all data for ${target}?`)) {
-            remove(ref(db, 'users/' + target));
-            remove(ref(db, 'status/' + target));
-        }
-    };
-
-    window.deleteAccount = () => {
-        if(confirm("Permanently delete your profile? This cannot be undone.")) {
-            remove(ref(db, 'users/' + user));
-            logout();
-        }
-    };
-
-    window.showScreen = (id) => {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    };
 
     window.logout = () => { localStorage.removeItem("chatUser"); location.reload(); };
 
