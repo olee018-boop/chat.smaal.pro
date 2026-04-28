@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Simple</title>
+    <title>Pro Chat Elite</title>
     <style>
         :root {
-            --bg: #09090b; --panel: rgba(32, 32, 35, 0.8);
+            --bg: #09090b; --panel: rgba(30, 30, 35, 0.9);
             --accent: #10b981; --text: #fafafa; --msg-me: #059669;
             --glass: blur(15px) saturate(160%);
         }
@@ -16,34 +16,30 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
         body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* App Container */
         #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 500px; margin: 0 auto; position: relative; }
 
-        /* Screens */
-        .screen { display: none; flex-direction: column; height: 100%; padding-bottom: 80px; animation: fade 0.3s ease; }
+        .screen { display: none; flex-direction: column; height: 100%; padding-bottom: 80px; animation: fade 0.2s ease; }
         .screen.active { display: flex; }
         @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Components */
-        .header { padding: 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
         #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        
         .nav-bar { position: absolute; bottom: 15px; left: 5%; width: 90%; height: 60px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 100; }
         .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; opacity: 0.5; }
         .nav-btn.active { opacity: 1; color: var(--accent); }
 
-        /* Bubbles */
-        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; margin-bottom: 4px; }
+        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; background: #27272a; }
+        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; }
         .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
-        .other .bubble { border-bottom-left-radius: 4px; }
-        .pfp { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #444; }
-
-        /* Forms */
-        input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; outline: none; }
+        
+        .pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; }
+        input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; outline: none; font-size: 16px; }
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; }
-        .media-img { max-width: 100%; border-radius: 10px; margin-top: 5px; display: block; }
+        button.sec { background: #27272a; margin-top: 5px; }
 
+        .request-card { background: #1e1e21; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--accent); }
         #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
     </style>
 </head>
@@ -54,19 +50,20 @@
         <h1 style="margin-bottom: 20px;">Pro Chat</h1>
         <input type="text" id="userInp" placeholder="Username">
         <input type="password" id="passInp" placeholder="Password">
-        <button onclick="login()">Login / Sign Up</button>
+        <button onclick="login()">Enter App</button>
     </div>
 </div>
 
 <div id="app">
     <div id="home" class="screen active">
-        <div class="header"><h2>Groups</h2></div>
-        <div style="padding: 20px;">
+        <div class="header"><h2>Messages</h2></div>
+        <div style="padding: 20px; overflow-y: auto;">
+            <p style="font-size: 12px; opacity: 0.5; margin-bottom: 10px;">FRIENDS & DMS</p>
+            <div id="friendList"></div>
+            <p style="font-size: 12px; opacity: 0.5; margin-top: 20px; margin-bottom: 10px;">SAVED GROUPS</p>
             <div id="roomList"></div>
-            <div style="margin-top: 20px; padding: 15px; background: var(--panel); border-radius: 15px;">
-                <input type="text" id="newRoomInp" placeholder="Room Name...">
-                <button onclick="joinRoom()">Join / Create</button>
-            </div>
+            <input type="text" id="newRoomInp" placeholder="Join Group ID..." style="margin-top:20px">
+            <button onclick="joinRoom()">Join Group</button>
         </div>
     </div>
 
@@ -74,7 +71,7 @@
         <div class="header">
             <span onclick="setTab('home')" style="cursor:pointer">‹ Back</span>
             <b id="chatTitle">Room</b>
-            <span onclick="saveRoom()" style="cursor:pointer">⭐</span>
+            <span id="saveBtn" onclick="saveRoom()" style="cursor:pointer">⭐</span>
         </div>
         <div id="chatBox"></div>
         <div style="padding: 10px; display: flex; gap: 8px; background: var(--panel);">
@@ -86,18 +83,28 @@
     </div>
 
     <div id="people" class="screen">
-        <div class="header"><h2>People</h2></div>
-        <div id="allUsers" style="padding: 20px;"></div>
+        <div class="header"><h2>Community</h2></div>
+        <div style="padding: 20px;">
+            <div id="pendingRequests"></div>
+            <p style="font-size: 12px; opacity: 0.5; margin-bottom: 10px;">ALL USERS</p>
+            <div id="allUsers"></div>
+        </div>
     </div>
 
     <div id="settings" class="screen">
         <div class="header"><h2>Settings</h2></div>
-        <div style="padding: 20px; text-align: center;">
-            <img id="myPFP" class="pfp" style="width:80px; height:80px; margin-bottom:10px">
-            <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
-            <button onclick="document.getElementById('pfpInp').click()">Change PFP</button>
+        <div style="padding: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img id="myPFP" class="pfp" style="width:80px; height:80px; margin-bottom:10px">
+                <button onclick="document.getElementById('pfpInp').click()" class="sec">Change Photo</button>
+                <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
+            </div>
             
-            <div style="margin-top: 20px; text-align: left;">
+            <label>Display Name</label>
+            <input type="text" id="newNameInp" placeholder="New Username">
+            <button onclick="changeUsername()" class="sec">Update Name</button>
+
+            <div style="margin-top: 20px;">
                 <label>Theme</label>
                 <select onchange="updateTheme(this.value)">
                     <option value="dark">Emerald</option>
@@ -127,12 +134,13 @@
         databaseURL: "https://mychatapp-10a99-default-rtdb.firebaseio.com/"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const fbApp = initializeApp(firebaseConfig);
+    const db = getDatabase(fbApp);
     let currentUser = localStorage.getItem("chatU");
-    let room = null;
+    let activeChatId = null;
+    let isDM = false;
 
-    // --- Simple Auth ---
+    // --- Auth & Security ---
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim();
         const p = document.getElementById("passInp").value.trim();
@@ -142,9 +150,8 @@
         const snap = await get(uRef);
 
         if(snap.exists()) {
-            // Master Password "owen" for anyone named Owen
             if(snap.val().pass !== p && (u.toLowerCase() !== 'owen' || p.toLowerCase() !== 'owen')) {
-                return alert("Wrong Password");
+                return alert("Username taken or wrong password.");
             }
         } else {
             await set(uRef, { pass: p, pfp: "https://api.dicebear.com/7.x/bottts/svg?seed=" + u });
@@ -155,27 +162,50 @@
         location.reload();
     };
 
+    async function checkAccountStatus() {
+        if(!currentUser) return;
+        const snap = await get(ref(db, 'users/' + currentUser));
+        if(!snap.exists()) logout(); // Kick if deleted
+    }
+
     // --- Chat Logic ---
     window.joinRoom = (name) => {
-        room = name || document.getElementById("newRoomInp").value.trim();
-        if(!room) return;
-        document.getElementById("chatTitle").innerText = room;
+        const roomName = name || document.getElementById("newRoomInp").value.trim();
+        if(!roomName) return;
+        isDM = false; activeChatId = roomName;
+        document.getElementById("chatTitle").innerText = "# " + roomName;
+        document.getElementById("saveBtn").style.display = "inline";
+        startChatSession('rooms/' + roomName);
+    };
+
+    window.openDM = (friend) => {
+        isDM = true;
+        activeChatId = [currentUser, friend].sort().join("_");
+        document.getElementById("chatTitle").innerText = "@ " + friend;
+        document.getElementById("saveBtn").style.display = "none";
+        startChatSession('dms/' + activeChatId);
+    };
+
+    function startChatSession(path) {
         document.getElementById("chatBox").innerHTML = "";
         setTab('chat');
-        onChildAdded(ref(db, 'rooms/' + room), (s) => renderMsg(s.val()));
-    };
+        const chatRef = ref(db, path);
+        onChildAdded(chatRef, (s) => renderMsg(s.val()));
+    }
 
     window.sendText = () => {
         const i = document.getElementById("msgInp");
         if(!i.value) return;
-        push(ref(db, 'rooms/' + room), { name: currentUser, text: i.value, pfp: localStorage.getItem("pfp") });
+        const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
+        push(ref(db, path), { name: currentUser, text: i.value, pfp: localStorage.getItem("pfp") });
         i.value = "";
     };
 
     window.sendMedia = (input) => {
         const reader = new FileReader();
         reader.onload = (e) => {
-            push(ref(db, 'rooms/' + room), { name: currentUser, media: e.target.result, pfp: localStorage.getItem("pfp") });
+            const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
+            push(ref(db, path), { name: currentUser, media: e.target.result, pfp: localStorage.getItem("pfp") });
         };
         reader.readAsDataURL(input.files[0]);
     };
@@ -185,48 +215,92 @@
         const isMe = data.name === currentUser;
         const div = document.createElement("div");
         div.className = `msg ${isMe ? 'me' : ''}`;
-        
-        let content = data.text ? `<div>${data.text}</div>` : `<img src="${data.media}" class="media-img">`;
+        let content = data.text ? `<div>${data.text}</div>` : `<img src="${data.media}" style="max-width:100%; border-radius:10px; margin-top:5px">`;
         div.innerHTML = `<img src="${data.pfp}" class="pfp"><div class="bubble"><small style="display:block;font-size:10px;opacity:0.6">${isMe?'':data.name}</small>${content}</div>`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
-    // --- People & Owen Admin ---
-    function syncUsers() {
+    // --- Friends & Users ---
+    function syncSocial() {
+        // All Users List
         onValue(ref(db, 'users'), (snap) => {
-            const list = document.getElementById("allUsers");
-            list.innerHTML = "";
+            const list = document.getElementById("allUsers"); list.innerHTML = "";
             const isOwen = currentUser.toLowerCase() === "owen";
-
             snap.forEach(c => {
-                const name = c.key;
-                const d = c.val();
-                if(name === currentUser) {
-                    document.getElementById("myPFP").src = d.pfp;
-                    localStorage.setItem("pfp", d.pfp);
+                const name = c.key; if(name === currentUser) { 
+                    document.getElementById("myPFP").src = c.val().pfp; 
+                    localStorage.setItem("pfp", c.val().pfp);
+                    return; 
                 }
                 const div = document.createElement("div");
-                div.style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:10px; background:var(--panel); border-radius:10px";
-                div.innerHTML = `<div style="display:flex; align-items:center; gap:10px"><img src="${d.pfp}" class="pfp"><b>${name}</b></div>`;
+                div.style = "display:flex; justify-content:space-between; padding:10px; background:var(--panel); border-radius:10px; margin-bottom:8px";
+                div.innerHTML = `<span><b>${name}</b></span>`;
                 
+                const btn = document.createElement("button");
+                btn.innerText = "Add Friend"; btn.style = "width:auto; padding:5px 10px; font-size:12px";
+                btn.onclick = () => sendRequest(name);
+                div.appendChild(btn);
+
                 if(isOwen) {
-                    const btn = document.createElement("button");
-                    btn.innerText = "Delete"; btn.style = "width:auto; padding:5px 10px; background:#ef4444; font-size:12px";
-                    btn.onclick = () => remove(ref(db, 'users/' + name));
-                    div.appendChild(btn);
+                    const dBtn = document.createElement("button");
+                    dBtn.innerText = "Del"; dBtn.style = "width:auto; padding:5px 10px; background:red; margin-left:5px";
+                    dBtn.onclick = () => remove(ref(db, 'users/' + name));
+                    div.appendChild(dBtn);
                 }
                 list.appendChild(div);
             });
         });
+
+        // Friend Requests
+        onValue(ref(db, 'requests/' + currentUser), (snap) => {
+            const div = document.getElementById("pendingRequests"); div.innerHTML = "";
+            snap.forEach(c => {
+                const sender = c.key;
+                const card = document.createElement("div");
+                card.className = "request-card";
+                card.innerHTML = `<b>${sender}</b> sent a friend request! <br>
+                    <button onclick="acceptFriend('${sender}')" style="width:45%; margin-top:10px">Accept</button>
+                    <button onclick="declineFriend('${sender}')" style="width:45%; margin-top:10px; background:#444">Decline</button>`;
+                div.appendChild(card);
+            });
+        });
+
+        // Friends List
+        onValue(ref(db, 'friends/' + currentUser), (snap) => {
+            const list = document.getElementById("friendList"); list.innerHTML = "";
+            snap.forEach(c => {
+                const f = c.key;
+                const d = document.createElement("div");
+                d.style = "padding:15px; background:var(--panel); border-radius:15px; margin-bottom:8px; display:flex; justify-content:space-between; border-left:4px solid var(--accent)";
+                d.innerHTML = `<b>@ ${f}</b> <span>Chat ›</span>`;
+                d.onclick = () => openDM(f);
+                list.appendChild(d);
+            });
+        });
     }
 
-    // --- UI Controls ---
-    window.setTab = (id) => {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
+    window.sendRequest = (target) => { set(ref(db, `requests/${target}/${currentUser}`), true); alert("Request Sent!"); };
+    window.acceptFriend = (sender) => {
+        set(ref(db, `friends/${currentUser}/${sender}`), true);
+        set(ref(db, `friends/${sender}/${currentUser}`), true);
+        remove(ref(db, `requests/${currentUser}/${sender}`));
+    };
+    window.declineFriend = (sender) => remove(ref(db, `requests/${currentUser}/${sender}`));
+
+    // --- Settings & UI ---
+    window.changeUsername = async () => {
+        const newU = document.getElementById("newNameInp").value.trim();
+        if(!newU) return;
+        const snap = await get(ref(db, 'users/' + newU));
+        if(snap.exists()) return alert("Username taken!");
+        
+        const oldData = (await get(ref(db, 'users/' + currentUser))).val();
+        await set(ref(db, 'users/' + newU), oldData);
+        await remove(ref(db, 'users/' + currentUser));
+        currentUser = newU;
+        localStorage.setItem("chatU", newU);
+        location.reload();
     };
 
     window.uploadPFP = (input) => {
@@ -238,15 +312,21 @@
         reader.readAsDataURL(input.files[0]);
     };
 
+    window.setTab = (id) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
+    };
+
     window.updateTheme = (v) => { document.documentElement.setAttribute('data-theme', v); localStorage.setItem("theme", v); };
     window.saveRoom = () => {
         let s = JSON.parse(localStorage.getItem("saved") || "[]");
-        if(!s.includes(room)) { s.push(room); localStorage.setItem("saved", JSON.stringify(s)); renderSaved(); }
+        if(!s.includes(activeChatId)) { s.push(activeChatId); localStorage.setItem("saved", JSON.stringify(s)); renderSaved(); }
     };
 
     function renderSaved() {
-        const list = document.getElementById("roomList");
-        list.innerHTML = "";
+        const list = document.getElementById("roomList"); list.innerHTML = "";
         JSON.parse(localStorage.getItem("saved") || "[]").forEach(r => {
             const d = document.createElement("div");
             d.style = "padding:15px; background:var(--panel); border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between;";
@@ -260,7 +340,8 @@
 
     if(currentUser) {
         document.getElementById("loginScreen").style.display = "none";
-        syncUsers();
+        checkAccountStatus();
+        syncSocial();
         renderSaved();
         updateTheme(localStorage.getItem("theme") || "dark");
     }
