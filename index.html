@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v2</title>
+    <title>Pro Chat Elite v3</title>
     <style>
         :root {
-            --bg: #09090b; --panel: rgba(30, 30, 35, 0.9);
+            --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
             --accent: #10b981; --text: #fafafa; --msg-me: #059669;
-            --glass: blur(15px) saturate(160%);
+            --glass: blur(20px) saturate(180%);
         }
         [data-theme="midnight"] { --bg: #020617; --accent: #6366f1; --msg-me: #4338ca; }
         [data-theme="rose"] { --bg: #0f0505; --accent: #f43f5e; --msg-me: #be123c; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; transition: background 0.3s ease; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
         body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
 
         #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 500px; margin: 0 auto; position: relative; overflow: hidden; }
@@ -22,76 +22,107 @@
         .screen.active { display: flex; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 10; flex-shrink: 0; }
+        .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         
-        /* FIXED SCROLLING AREA */
-        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        /* SCROLL AREA FIX */
+        #chatBox { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            padding-bottom: 20px; /* Space for messages */
+        }
         
-        .nav-bar { position: absolute; bottom: 15px; left: 5%; width: 90%; height: 60px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* BOTTOM MENU */
+        .nav-bar { 
+            position: absolute; 
+            bottom: 15px; 
+            left: 5%; 
+            width: 90%; 
+            height: 65px; 
+            background: var(--panel); 
+            backdrop-filter: var(--glass); 
+            border-radius: 20px; 
+            display: flex; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            z-index: 1000; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
         .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; opacity: 0.5; transition: 0.2s; }
         .nav-btn.active { opacity: 1; color: var(--accent); transform: scale(1.1); }
 
+        /* INPUT AREA FIX - Now sits ABOVE nav bar */
+        .input-wrap { 
+            padding: 12px; 
+            display: flex; 
+            gap: 10px; 
+            background: var(--panel); 
+            backdrop-filter: var(--glass); 
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            padding-bottom: 90px; /* Push content up so nav doesn't cover it */
+        }
+
         .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; }
         .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
         
-        .link-text { color: #60a5fa; text-decoration: underline; cursor: pointer; }
+        .link-text { color: #60a5fa; text-decoration: underline; cursor: pointer; font-weight: bold; }
         .pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; }
         
-        input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; outline: none; font-size: 16px; }
-        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; active-transform: scale(0.98); transition: 0.2s; }
-        .sec-btn { background: #27272a; color: #fff; margin-top: 5px; }
-        .danger-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; margin-top: 20px; }
+        input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; }
+        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .sec-btn { background: #27272a; margin-top: 5px; }
 
-        #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="loginScreen">
     <div style="width: 100%; max-width: 300px;">
-        <h1 style="margin-bottom: 8px; letter-spacing: -1px;">Pro Chat</h1>
-        <p style="opacity: 0.5; margin-bottom: 25px;">Elite Messaging</p>
+        <h1 style="margin-bottom: 25px;">Pro Chat</h1>
         <input type="text" id="userInp" placeholder="Username">
         <input type="password" id="passInp" placeholder="Password">
-        <button onclick="login()">Enter App</button>
+        <button onclick="login()" style="width:100%">Sign In</button>
     </div>
 </div>
 
 <div id="app">
     <div id="home" class="screen active">
         <div class="header"><h2>Messages</h2></div>
-        <div style="flex: 1; overflow-y: auto; padding: 20px 20px 100px;">
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px; letter-spacing: 1px;">FRIENDS</p>
+        <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">FRIENDS</p>
             <div id="friendList"></div>
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 25px; margin-bottom: 12px; letter-spacing: 1px;">SAVED GROUPS</p>
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 25px; margin-bottom: 12px;">CHANNELS</p>
             <div id="roomList"></div>
-            <input type="text" id="newRoomInp" placeholder="Group Name..." style="margin-top:20px">
-            <button onclick="joinRoom()">Join Group</button>
+            <input type="text" id="newRoomInp" placeholder="Channel Name..." style="margin-top:20px">
+            <button onclick="joinRoom()" style="width:100%">Enter Channel</button>
         </div>
     </div>
 
     <div id="chat" class="screen">
         <div class="header">
-            <span onclick="setTab('home')" style="cursor:pointer; font-size: 18px;">‹ Back</span>
+            <span onclick="setTab('home')" style="cursor:pointer">‹ Back</span>
             <b id="chatTitle">Room</b>
             <span id="saveBtn" onclick="saveRoom()" style="cursor:pointer">⭐</span>
         </div>
         <div id="chatBox"></div>
-        <div style="padding: 12px; display: flex; gap: 10px; background: var(--panel); backdrop-filter: var(--glass); border-top: 1px solid rgba(255,255,255,0.05);">
+        <div class="input-wrap">
             <input type="file" id="fileInp" style="display:none" onchange="sendMedia(this)">
-            <button onclick="document.getElementById('fileInp').click()" style="width:45px; background: #333">+</button>
-            <input type="text" id="msgInp" placeholder="Message..." style="margin:0; border-radius: 20px;" onkeypress="if(event.key==='Enter') sendText()">
-            <button onclick="sendText()" style="width:50px; border-radius: 50%;">➤</button>
+            <button onclick="document.getElementById('fileInp').click()" style="width:45px">+</button>
+            <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
+            <button onclick="sendText()" style="width:60px">➤</button>
         </div>
     </div>
 
     <div id="people" class="screen">
         <div class="header"><h2>People</h2></div>
-        <div style="flex: 1; overflow-y: auto; padding: 20px 20px 100px;">
+        <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
             <div id="pendingRequests"></div>
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px; letter-spacing: 1px;">ALL USERS</p>
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">EVERYONE</p>
             <div id="allUsers"></div>
         </div>
     </div>
@@ -100,26 +131,22 @@
         <div class="header"><h2>Settings</h2></div>
         <div style="padding: 20px;">
             <div style="text-align: center; margin-bottom: 25px;">
-                <img id="myPFP" class="pfp" style="width:90px; height:90px; margin-bottom:10px; border: 2px solid var(--accent)">
-                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn">Update Avatar</button>
+                <img id="myPFP" class="pfp" style="width:80px; height:80px; margin-bottom:10px">
+                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn">Change Avatar</button>
                 <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
             </div>
             
-            <label style="font-size: 12px; opacity: 0.5;">RENAME ACCOUNT</label>
-            <input type="text" id="newNameInp" placeholder="New Username">
-            <button onclick="changeUsername()" class="sec-btn">Save New Name</button>
+            <input type="text" id="newNameInp" placeholder="New Display Name">
+            <button onclick="changeUsername()" class="sec-btn" style="width:100%">Update Identity</button>
 
-            <div style="margin-top: 20px;">
-                <label style="font-size: 12px; opacity: 0.5;">APPEARANCE</label>
-                <select onchange="updateTheme(this.value)">
-                    <option value="dark">Emerald City</option>
-                    <option value="midnight">Deep Space</option>
-                    <option value="rose">Rose Quartz</option>
-                </select>
-            </div>
+            <select onchange="updateTheme(this.value)" style="margin-top:20px">
+                <option value="dark">Emerald Dark</option>
+                <option value="midnight">Midnight OLED</option>
+                <option value="rose">Rose Velvet</option>
+            </select>
             
-            <button onclick="logout()" style="margin-top: 40px; background: #333;">Logout</button>
-            <button onclick="deleteMyAccount()" class="danger-btn">Delete My Account</button>
+            <button onclick="logout()" style="margin-top: 40px; background: #333; width:100%">Sign Out</button>
+            <button onclick="deleteMyAccount()" style="background: rgba(239,68,68,0.1); color:#ef4444; border:1px solid #ef4444; margin-top:10px; width:100%">Delete Account</button>
         </div>
     </div>
 
@@ -147,11 +174,8 @@
     let activeChatId = null;
     let isDM = false;
 
-    // --- SECURITY WRAPPER ---
     window.safeLink = (url) => {
-        if(confirm(`WARNING: You are opening an external link:\n\n${url}\n\nAre you sure it's safe?`)) {
-            window.open(url, '_blank');
-        }
+        if(confirm(`Security Check:\n\nYou are leaving the app to visit:\n${url}\n\nContinue?`)) window.open(url, '_blank');
     };
 
     function parseLinks(text) {
@@ -159,7 +183,6 @@
         return text.replace(urlRegex, (url) => `<span class="link-text" onclick="safeLink('${url}')">${url}</span>`);
     }
 
-    // --- AUTH ---
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim();
         const p = document.getElementById("passInp").value.trim();
@@ -173,7 +196,6 @@
         currentUser = u; localStorage.setItem("chatU", u); location.reload();
     };
 
-    // --- CHAT & SCROLL ---
     window.joinRoom = (name) => {
         const roomName = name || document.getElementById("newRoomInp").value.trim();
         if(!roomName) return;
@@ -219,7 +241,6 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    // --- SOCIAL & FRIENDS ---
     function syncSocial() {
         onValue(ref(db, 'users'), (snap) => {
             const list = document.getElementById("allUsers"); list.innerHTML = "";
@@ -248,9 +269,9 @@
                 const d = document.createElement("div");
                 d.style = "padding:15px; background:var(--panel); border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;";
                 d.innerHTML = `<div onclick="openDM('${f}')" style="flex:1;"><b>${f}</b></div>`;
-                const rb = document.createElement("span"); rb.innerText = "✕"; rb.style="color:red; cursor:pointer; padding:5px;";
-                rb.onclick = () => removeFriend(f); d.appendChild(rb);
-                list.appendChild(d);
+                const rb = document.createElement("span"); rb.innerText = "✕"; rb.style="color:red; padding:10px;";
+                rb.onclick = () => { if(confirm(`Unfriend ${f}?`)) { remove(ref(db, `friends/${currentUser}/${f}`)); remove(ref(db, `friends/${f}/${currentUser}`)); }};
+                d.appendChild(rb); list.appendChild(d);
             });
         });
 
@@ -258,18 +279,16 @@
             const div = document.getElementById("pendingRequests"); div.innerHTML = "";
             snap.forEach(c => {
                 const s = c.key;
-                const card = document.createElement("div"); card.style="background:var(--accent); color:white; padding:12px; border-radius:15px; margin-bottom:15px;";
-                card.innerHTML = `Request from ${s} <br><button onclick="acceptFriend('${s}')" style="width:48%; background:white; color:var(--accent); margin-top:8px;">Accept</button>`;
+                const card = document.createElement("div"); card.style="background:var(--accent); padding:12px; border-radius:15px; margin-bottom:15px;";
+                card.innerHTML = `Request from ${s} <button onclick="acceptFriend('${s}')" style="background:white; color:var(--accent); margin-top:8px; width:100%">Accept</button>`;
                 div.appendChild(card);
             });
         });
     }
 
-    window.removeFriend = (name) => { if(confirm(`Remove ${name}?`)) { remove(ref(db, `friends/${currentUser}/${name}`)); remove(ref(db, `friends/${name}/${currentUser}`)); }};
     window.acceptFriend = (s) => { set(ref(db, `friends/${currentUser}/${s}`), true); set(ref(db, `friends/${s}/${currentUser}`), true); remove(ref(db, `requests/${currentUser}/${s}`)); };
-
-    // --- ACCOUNT SETTINGS ---
-    window.deleteMyAccount = () => { if(confirm("PERMANENTLY delete your account? This cannot be undone.")) { remove(ref(db, 'users/' + currentUser)); logout(); }};
+    window.deleteMyAccount = () => { if(confirm("Permanently delete account?")) { remove(ref(db, 'users/' + currentUser)); logout(); }};
+    
     window.changeUsername = async () => {
         const n = document.getElementById("newNameInp").value.trim(); if(!n) return;
         const snap = await get(ref(db, 'users/' + n)); if(snap.exists()) return alert("Taken!");
