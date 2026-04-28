@@ -1,137 +1,158 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-bubbles="modern">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Chat - Ultra Media</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pro Chat Elite</title>
     <style>
         :root {
             --bg: #0b141a; --sidebar: #111b21; --panel: #202c33;
             --accent: #00a884; --text: #e9edef; --msg-me: #005c4b;
+            --radius: 18px;
         }
-        [data-theme="light"] { --bg: #f0f2f5; --sidebar: #ffffff; --panel: #f0f2f5; --accent: #00a884; --text: #111b21; --msg-me: #d9fdd3; }
-        [data-theme="purple"] { --bg: #1a1a2e; --sidebar: #16213e; --panel: #0f3460; --accent: #e94560; --text: #e9edef; --msg-me: #e94560; }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; overflow: hidden; transition: 0.5s ease; }
-
-        /* Layout */
-        #sidebar { width: 350px; background: var(--sidebar); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; z-index: 10; }
-        #mainContent { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
-
-        /* Animations */
-        .screen { display: none; flex-direction: column; height: 100%; animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .screen.active { display: flex; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Message Styling */
-        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-        .msg-container { display: flex; gap: 10px; max-width: 85%; animation: msgIn 0.3s ease; }
-        .msg-container.me { align-self: flex-end; flex-direction: row-reverse; }
+        /* Style Variations */
+        [data-theme="midnight"] { --bg: #000; --sidebar: #000; --panel: #111; --accent: #3d5afe; --msg-me: #283593; }
+        [data-theme="rose"] { --bg: #1a0f12; --sidebar: #25161a; --panel: #311d23; --accent: #f06292; --msg-me: #880e4f; }
+        [data-theme="ocean"] { --bg: #011627; --sidebar: #011f35; --panel: #0b3954; --accent: #00d1ff; --msg-me: #006494; }
+        [data-theme="forest"] { --bg: #0a110a; --sidebar: #111a11; --panel: #1a2a1a; --accent: #4caf50; --msg-me: #1b5e20; }
         
-        @keyframes msgIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        /* Bubble Styles */
+        [data-bubbles="sharp"] { --radius: 4px; }
+        [data-bubbles="rounded"] { --radius: 25px; }
 
-        .pfp-small { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* Main Viewport */
+        #app { flex: 1; position: relative; width: 100%; max-width: 600px; margin: 0 auto; background: var(--bg); display: flex; flex-direction: column; }
+
+        /* Navigation Bar */
+        .nav-bottom { height: 65px; background: var(--panel); display: flex; border-top: 1px solid rgba(255,255,255,0.05); padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; opacity: 0.6; cursor: pointer; }
+        .nav-item.active { opacity: 1; color: var(--accent); }
+        .nav-item i { font-size: 20px; margin-bottom: 2px; font-style: normal; }
+
+        /* Screens */
+        .screen { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.3s ease; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+        /* Headers */
+        .header { padding: 15px 20px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; sticky; top: 0; z-index: 10; }
+        .pfp { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; }
+
+        /* Chat System */
+        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .msg-wrap { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
+        .msg-wrap.me { align-self: flex-end; flex-direction: row-reverse; }
         
         .bubble { 
-            padding: 10px 14px; border-radius: 18px; font-size: 15px; position: relative; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2); color: white;
+            padding: 10px 14px; border-radius: var(--radius); font-size: 15px; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3); word-wrap: break-word;
         }
-        .me .bubble { background: var(--msg-me) !important; border-top-right-radius: 4px; }
-        .other .bubble { border-top-left-radius: 4px; }
+        .me .bubble { background: var(--msg-me); border-bottom-right-radius: 2px; }
+        .other .bubble { background: var(--panel); border-bottom-left-radius: 2px; }
 
-        .media-content { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; display: block; }
+        .media { max-width: 100%; border-radius: 12px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); }
 
-        /* UI Elements */
-        .header { padding: 15px 20px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin: 0 10px 5px; }
-        .list-item:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
-        
-        .input-area { padding: 15px 20px; background: var(--panel); display: flex; gap: 10px; align-items: center; }
-        input[type="text"] { flex: 1; background: rgba(255,255,255,0.05); border: none; padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
-        
-        .btn-round { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent); color: white; cursor: pointer; display: grid; place-items: center; transition: 0.3s; }
-        .btn-round:hover { transform: rotate(90deg) scale(1.1); }
-        .btn-media { background: rgba(255,255,255,0.1); color: var(--text); }
+        /* Forms */
+        input, select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #white; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; font-size: 16px; color: white; outline: none; }
+        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
 
-        #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .login-card { width: 340px; padding: 40px; background: var(--sidebar); border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        /* Login Overlay */
+        #login { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 30px; }
     </style>
 </head>
 <body>
 
-<div id="loginOverlay">
-    <div class="login-card">
+<div id="login">
+    <div style="width: 100%; max-width: 300px; text-align: center;">
         <h1 style="margin-bottom: 20px;">Pro Chat</h1>
-        <input type="text" id="regUser" placeholder="Username" style="width:100%; padding:15px; border-radius:15px; border:none; margin-bottom:10px; background:rgba(255,255,255,0.05); color:white;">
-        <input type="password" id="regPass" placeholder="Password" style="width:100%; padding:15px; border-radius:15px; border:none; margin-bottom:20px; background:rgba(255,255,255,0.05); color:white;">
-        <button onclick="handleAuth()" style="width:100%; padding:15px; border-radius:15px; background:var(--accent); color:white; border:none; font-weight:bold; cursor:pointer;">Launch App</button>
+        <input type="text" id="regU" placeholder="Username">
+        <input type="password" id="regP" placeholder="Password">
+        <button onclick="auth()">Launch App</button>
     </div>
 </div>
 
-<div id="sidebar">
-    <div class="header">
-        <img id="myPFP" class="pfp-small" style="width:40px; height:40px" src="">
-        <b id="myName">User</b>
-        <button onclick="showScreen('settingsScreen')" style="background:transparent; border:none; font-size:20px; cursor:pointer">⚙️</button>
-    </div>
-    <div style="overflow-y:auto; flex:1">
-        <p style="padding:20px 20px 10px; font-size:11px; color:var(--accent); font-weight:bold;">SAVED CHATS</p>
-        <div id="savedRoomsList"></div>
-        <p style="padding:20px 20px 10px; font-size:11px; color:var(--accent); font-weight:bold;">PEOPLE</p>
-        <div id="userList"></div>
-    </div>
-</div>
-
-<div id="mainContent">
+<div id="app">
     <div id="homeScreen" class="screen active">
-        <div class="header"><h2>Home</h2></div>
-        <div style="padding:40px; text-align:center">
-            <h2 style="margin-bottom:20px">Welcome Back!</h2>
-            <input type="text" id="roomInp" placeholder="Enter Room Name..." style="max-width:300px; margin-bottom:10px">
-            <button onclick="joinRoom()" style="padding:12px 30px; border-radius:25px; background:var(--accent); border:none; color:white; font-weight:bold;">Join Room</button>
+        <div class="header"><h2>Chats</h2></div>
+        <div style="padding: 20px;">
+            <p style="font-size: 12px; color: var(--accent); margin-bottom: 10px;">PINNED GROUPS</p>
+            <div id="savedRooms"></div>
+            <div style="margin-top: 20px;">
+                <input type="text" id="roomName" placeholder="Join room name...">
+                <button onclick="joinRoom()">Enter Group</button>
+            </div>
         </div>
     </div>
 
     <div id="chatScreen" class="screen">
         <div class="header">
-            <div style="display:flex; align-items:center; gap:15px">
-                <button onclick="showScreen('homeScreen')" style="background:transparent; border:none; color:white; font-size:25px; cursor:pointer">‹</button>
-                <h2 id="chatTitle">Room</h2>
+            <div style="display:flex; align-items:center; gap:10px">
+                <span onclick="setTab('homeScreen')" style="font-size:24px;">‹</span>
+                <b id="activeTitle">Room</b>
             </div>
-            <button onclick="saveRoom()" style="background:transparent; border:none; color:var(--accent); font-size:20px; cursor:pointer">⭐</button>
+            <button onclick="saveRoom()" style="width:auto; background:transparent; font-size:20px">⭐</button>
         </div>
         <div id="chatBox"></div>
-        <div class="input-area">
-            <input type="file" id="mediaFile" style="display:none" accept="image/*,video/*" onchange="uploadMedia(this)">
-            <button class="btn-round btn-media" onclick="document.getElementById('mediaFile').click()">+</button>
-            <input type="text" id="msgInp" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendMsg()">
-            <button class="btn-round" onclick="sendMsg()">➤</button>
+        <div class="header" style="padding: 10px;">
+            <input type="file" id="mediaInp" style="display:none" onchange="uploadMedia(this)">
+            <button onclick="document.getElementById('mediaInp').click()" style="width:40px; background:rgba(255,255,255,0.1); margin-right:8px">+</button>
+            <input type="text" id="msgInp" placeholder="Message..." style="margin:0; flex:1;" onkeypress="if(event.key==='Enter') send()">
+            <button onclick="send()" style="width:60px; margin-left:8px">Send</button>
         </div>
     </div>
 
-    <div id="settingsScreen" class="screen">
-        <div class="header"><h2>Profile Settings</h2><button onclick="showScreen('homeScreen')" style="background:transparent; border:none; color:var(--accent); font-weight:bold;">Done</button></div>
-        <div style="padding:30px">
-            <div style="display:flex; align-items:center; gap:20px; margin-bottom:30px">
-                <img id="setPFP" class="pfp-small" style="width:80px; height:80px" src="">
-                <input type="file" id="pfpUpload" style="display:none" onchange="updatePFP(this)">
-                <button onclick="document.getElementById('pfpUpload').click()" style="padding:10px 20px; border-radius:10px; background:var(--panel); border:1px solid var(--accent); color:white;">Change Photo</button>
-            </div>
-            <label>App Theme</label>
-            <select onchange="changeTheme(this.value)" style="width:100%; padding:15px; border-radius:15px; background:var(--panel); color:white; border:none; margin-top:10px">
-                <option value="dark">Dark Mode</option>
-                <option value="light">Light Mode</option>
-                <option value="purple">Midnight Purple</option>
-            </select>
-            <button onclick="logout()" style="margin-top:40px; width:100%; padding:15px; border:none; background:#ef5350; color:white; border-radius:15px; font-weight:bold;">Logout</button>
+    <div id="userScreen" class="screen">
+        <div class="header"><h2>Community</h2></div>
+        <div id="userList" style="padding: 15px;"></div>
+        <div id="adminArea" style="display:none; padding: 15px; border-top: 1px solid var(--accent);">
+            <p style="color:red; font-size:10px;">ADMIN CONSOLE (OWEN)</p>
+            <div id="adminList"></div>
         </div>
+    </div>
+
+    <div id="settingScreen" class="screen">
+        <div class="header"><h2>Style Lab</h2></div>
+        <div style="padding: 20px;">
+            <label style="font-size: 12px; opacity: 0.7;">PROFILE PHOTO</label>
+            <div style="display:flex; gap:10px; align-items:center; margin: 10px 0 20px;">
+                <img id="myPFP" class="pfp" src="">
+                <input type="file" id="pfpInp" style="display:none" onchange="updatePFP(this)">
+                <button onclick="document.getElementById('pfpInp').click()" style="width:auto; background:var(--panel)">Change</button>
+            </div>
+
+            <label style="font-size: 12px; opacity: 0.7;">COLOR THEME</label>
+            <select onchange="updateStyle('theme', this.value)">
+                <option value="dark">Standard Dark</option>
+                <option value="midnight">Midnight OLED</option>
+                <option value="rose">Rose Wine</option>
+                <option value="ocean">Deep Ocean</option>
+                <option value="forest">Amazon Forest</option>
+            </select>
+
+            <label style="font-size: 12px; opacity: 0.7;">BUBBLE STYLE</label>
+            <select onchange="updateStyle('bubbles', this.value)">
+                <option value="modern">Modern (Default)</option>
+                <option value="rounded">Maximum Round</option>
+                <option value="sharp">Sharp Edges</option>
+            </select>
+
+            <button onclick="logout()" style="background:#ef5350; margin-top:30px">Logout</button>
+        </div>
+    </div>
+
+    <div class="nav-bottom">
+        <div class="nav-item active" onclick="setTab('homeScreen')" id="nav-home"><i>🏠</i>Home</div>
+        <div class="nav-item" onclick="setTab('userScreen')" id="nav-user"><i>👥</i>Users</div>
+        <div class="nav-item" onclick="setTab('settingScreen')" id="nav-settings"><i>🎨</i>Style</div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, onDisconnect, query, limitToLast } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
@@ -143,158 +164,175 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let user = localStorage.getItem("chatUser");
-    let room = null;
+    let user = localStorage.getItem("chatU");
+    let activeRoom = null;
     let roomRef = null;
 
-    // --- Helper: Generate Unique Color based on username ---
-    function getUserColor(name) {
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        return `hsl(${hash % 360}, 60%, 40%)`;
-    }
-
-    // --- Auth & Profile ---
-    window.handleAuth = async () => {
-        const u = document.getElementById("regUser").value.trim();
-        const p = document.getElementById("regPass").value.trim();
+    // --- Authentication ---
+    window.auth = async () => {
+        const u = document.getElementById("regU").value.trim();
+        const p = document.getElementById("regP").value.trim();
         if(!u || !p) return;
         const uRef = ref(db, 'users/' + u);
         const snap = await get(uRef);
         if(snap.exists() && snap.val().pass !== p) return alert("Wrong Password");
         if(!snap.exists()) await set(uRef, { pass: p, pfp: `https://api.dicebear.com/7.x/bottts/svg?seed=${u}` });
-        user = u; localStorage.setItem("chatUser", u);
-        initApp();
+        user = u; localStorage.setItem("chatU", u);
+        startApp();
     };
 
-    function initApp() {
-        document.getElementById("loginOverlay").style.display = "none";
-        document.getElementById("myName").innerText = user;
-        loadGlobals();
-        changeTheme(localStorage.getItem("chatTheme") || 'dark');
+    function startApp() {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("myPFP").src = localStorage.getItem("myPFP") || "";
+        
+        // Owen Admin Check
+        if(user === "Owen") document.getElementById("adminArea").style.display = "block";
+
+        // Global Sync
+        syncGlobals();
+        setTab('homeScreen');
         renderSaved();
-    }
-
-    window.updatePFP = (input) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            set(ref(db, `users/${user}/pfp`), e.target.result);
-            localStorage.setItem("chatPFP", e.target.result);
-        };
-        reader.readAsDataURL(input.files[0]);
-    };
-
-    // --- Media Sharing ---
-    window.uploadMedia = (input) => {
-        const file = input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const type = file.type.startsWith('video') ? 'video' : 'image';
-            push(ref(db, 'rooms/' + room), { name: user, media: e.target.result, mediaType: type, pfp: localStorage.getItem("chatPFP") });
-        };
-        reader.readAsDataURL(file);
-    };
-
-    // --- Core Logic ---
-    function loadGlobals() {
-        onValue(ref(db, 'users'), (snap) => {
-            const list = document.getElementById("userList");
-            list.innerHTML = "";
-            snap.forEach(child => {
-                const data = child.val();
-                if(child.key === user) {
-                    document.getElementById("myPFP").src = data.pfp;
-                    document.getElementById("setPFP").src = data.pfp;
-                    localStorage.setItem("chatPFP", data.pfp);
-                }
-                const div = document.createElement("div");
-                div.className = "list-item";
-                div.innerHTML = `<img class="pfp-small" src="${data.pfp}"><b>${child.key}</b>`;
-                list.appendChild(div);
-            });
+        
+        // Presence
+        const sRef = ref(db, 'status/' + user);
+        onValue(ref(db, '.info/connected'), (snap) => {
+            if(snap.val()) { onDisconnect(sRef).set("offline"); set(sRef, "online"); }
         });
     }
 
-    window.joinRoom = (rName) => {
-        room = rName || document.getElementById("roomInp").value.trim();
-        if(!room) return;
-        document.getElementById("chatTitle").innerText = "# " + room;
+    // --- Chat Logic ---
+    window.joinRoom = (name) => {
+        activeRoom = name || document.getElementById("roomName").value.trim();
+        if(!activeRoom) return;
+        
+        document.getElementById("activeTitle").innerText = "# " + activeRoom;
         document.getElementById("chatBox").innerHTML = "";
-        showScreen('chatScreen');
-        if(roomRef) off(roomRef);
-        roomRef = ref(db, 'rooms/' + room);
+        setTab('chatScreen');
+
+        if(roomRef) roomRef = null;
+        roomRef = query(ref(db, 'rooms/' + activeRoom), limitToLast(50));
+        
         onChildAdded(roomRef, (snap) => renderMsg(snap.val()));
     };
 
-    window.sendMsg = () => {
-        const inp = document.getElementById("msgInp");
-        if(!inp.value) return;
-        push(ref(db, 'rooms/' + room), { name: user, text: inp.value, pfp: localStorage.getItem("chatPFP") });
-        inp.value = "";
+    window.send = () => {
+        const i = document.getElementById("msgInp");
+        if(!i.value) return;
+        push(ref(db, 'rooms/' + activeRoom), { name: user, text: i.value, pfp: localStorage.getItem("myPFP") });
+        i.value = "";
+    };
+
+    window.uploadMedia = (input) => {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const type = file.type.startsWith('video') ? 'video' : 'image';
+            push(ref(db, 'rooms/' + activeRoom), { name: user, media: e.target.result, mType: type, pfp: localStorage.getItem("myPFP") });
+        };
+        reader.readAsDataURL(file);
     };
 
     function renderMsg(data) {
         const box = document.getElementById("chatBox");
         const isMe = data.name === user;
         const div = document.createElement("div");
-        div.className = `msg-container ${isMe ? 'me' : 'other'}`;
+        div.className = `msg-wrap ${isMe ? 'me' : 'other'}`;
         
-        let content = data.text ? `<div>${data.text}</div>` : '';
+        let body = data.text ? `<div>${data.text}</div>` : "";
         if(data.media) {
-            content += data.mediaType === 'video' 
-                ? `<video src="${data.media}" class="media-content" controls></video>`
-                : `<img src="${data.media}" class="media-content" onclick="window.open(this.src)">`;
+            body += data.mType === 'video' ? `<video src="${data.media}" class="media" controls></video>` : `<img src="${data.media}" class="media">`;
         }
 
-        const color = isMe ? 'var(--msg-me)' : getUserColor(data.name);
-        
         div.innerHTML = `
-            <img class="pfp-small" src="${data.pfp || ''}">
-            <div class="bubble" style="background:${color}">
-                <b style="font-size:10px; opacity:0.8; display:block; margin-bottom:3px">${isMe ? '' : data.name}</b>
-                ${content}
+            <img class="pfp" style="width:28px; height:28px" src="${data.pfp || ''}">
+            <div class="bubble">
+                <b style="font-size:10px; opacity:0.6; display:block;">${isMe ? '' : data.name}</b>
+                ${body}
             </div>
         `;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
-    window.showScreen = (id) => {
+    // --- Style & Navigation ---
+    window.setTab = (id) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-    };
-
-    window.changeTheme = (t) => {
-        document.documentElement.setAttribute('data-theme', t);
-        localStorage.setItem("chatTheme", t);
-    };
-
-    window.saveRoom = () => {
-        let saved = JSON.parse(localStorage.getItem("saved") || "[]");
-        if(!saved.includes(room)) {
-            saved.push(room);
-            localStorage.setItem("saved", JSON.stringify(saved));
-            renderSaved();
+        if(id !== 'chatScreen') {
+            const navId = id === 'homeScreen' ? 'nav-home' : id === 'userScreen' ? 'nav-user' : 'nav-settings';
+            document.getElementById(navId).classList.add('active');
         }
     };
 
-    function renderSaved() {
-        const list = document.getElementById("savedRoomsList");
-        list.innerHTML = "";
-        const saved = JSON.parse(localStorage.getItem("saved") || "[]");
-        saved.forEach(r => {
-            const div = document.createElement("div");
-            div.className = "list-item";
-            div.innerHTML = `<div style="width:30px; height:30px; background:var(--accent); border-radius:8px; display:grid; place-items:center; font-weight:bold">#</div><b>${r}</b>`;
-            div.onclick = () => joinRoom(r);
-            list.appendChild(div);
+    window.updateStyle = (type, val) => {
+        if(type === 'theme') document.documentElement.setAttribute('data-theme', val);
+        if(type === 'bubbles') document.documentElement.setAttribute('data-bubbles', val);
+        localStorage.setItem(type, val);
+    };
+
+    window.updatePFP = (input) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            set(ref(db, `users/${user}/pfp`), e.target.result);
+            localStorage.setItem("myPFP", e.target.result);
+            document.getElementById("myPFP").src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    };
+
+    function syncGlobals() {
+        onValue(ref(db, 'users'), (snap) => {
+            const list = document.getElementById("userList");
+            const admin = document.getElementById("adminList");
+            list.innerHTML = ""; admin.innerHTML = "";
+            snap.forEach(c => {
+                const name = c.key;
+                const d = c.val();
+                if(name === user) document.getElementById("myPFP").src = d.pfp;
+                
+                onValue(ref(db, 'status/' + name), (s) => {
+                    const status = s.val() || "offline";
+                    const item = document.createElement("div");
+                    item.style = "display:flex; align-items:center; gap:10px; margin-bottom:10px;";
+                    item.innerHTML = `<img class="pfp" src="${d.pfp}"> <b>${name}</b> <small style="color:${status === 'online' ? 'var(--accent)' : 'gray'}">${status}</small>`;
+                    list.appendChild(item);
+
+                    if(user === "Owen") {
+                        const b = document.createElement("button");
+                        b.innerText = "Delete " + name; b.style = "font-size:10px; margin-bottom:5px; background:red";
+                        b.onclick = () => remove(ref(db, 'users/' + name));
+                        admin.appendChild(b);
+                    }
+                });
+            });
         });
     }
 
-    window.logout = () => { localStorage.removeItem("chatUser"); location.reload(); };
+    window.saveRoom = () => {
+        let saved = JSON.parse(localStorage.getItem("saved") || "[]");
+        if(!saved.includes(activeRoom)) { saved.push(activeRoom); localStorage.setItem("saved", JSON.stringify(saved)); renderSaved(); }
+    };
 
-    if(user) initApp();
+    function renderSaved() {
+        const list = document.getElementById("savedRooms");
+        list.innerHTML = "";
+        const saved = JSON.parse(localStorage.getItem("saved") || "[]");
+        saved.forEach(r => {
+            const d = document.createElement("div");
+            d.style = "padding:15px; background:var(--panel); border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between;";
+            d.innerHTML = `<b># ${r}</b> <span>›</span>`;
+            d.onclick = () => joinRoom(r);
+            list.appendChild(d);
+        });
+    }
+
+    window.logout = () => { localStorage.clear(); location.reload(); };
+
+    // Initial Load
+    if(user) startApp();
+    updateStyle('theme', localStorage.getItem('theme') || 'dark');
+    updateStyle('bubbles', localStorage.getItem('bubbles') || 'modern');
 </script>
 </body>
 </html>
