@@ -1,300 +1,320 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Chat Pro</title>
+    <title>Pro Chat v4</title>
     <style>
         :root {
-            --bg: #0b141a;
-            --sidebar: #111b21;
-            --panel: #202c33;
-            --accent: #00a884;
-            --text: #e9edef;
-            --msg-me: #005c4b;
-            --msg-them: #202c33;
-            --glass: rgba(255, 255, 255, 0.03);
+            --bg: #0b141a; --sidebar: #111b21; --panel: #202c33;
+            --accent: #00a884; --text: #e9edef; --msg-me: #005c4b; --msg-them: #202c33;
+        }
+        [data-theme="light"] {
+            --bg: #f0f2f5; --sidebar: #ffffff; --panel: #f0f2f5;
+            --accent: #00a884; --text: #111b21; --msg-me: #d9fdd3; --msg-them: #ffffff;
+        }
+        [data-theme="purple"] {
+            --bg: #1a1a2e; --sidebar: #16213e; --panel: #0f3460;
+            --accent: #e94560; --text: #e9edef; --msg-me: #e94560; --msg-them: #16213e;
+        }
+        [data-theme="oled"] {
+            --bg: #000000; --sidebar: #000000; --panel: #111111;
+            --accent: #ffffff; --text: #ffffff; --msg-me: #333333; --msg-them: #111111;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; transition: 0.3s; }
+
+        #sidebar { width: 320px; background: var(--sidebar); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
+        #mainContent { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
+
+        .header { padding: 15px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .pfp { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #3b4a54; }
         
-        body { 
-            background-color: var(--bg); 
-            color: var(--text); 
-            height: 100dvh; 
-            overflow: hidden;
-            display: flex;
-        }
+        .scroll-v { flex: 1; overflow-y: auto; padding: 10px; }
+        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 5px; background: rgba(255,255,255,0.03); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .online { background: #4caf50; }
+        .offline { background: #8696a0; }
 
-        /* iPad/Desktop Split Layout */
-        #appContainer { display: flex; width: 100%; height: 100%; }
-
-        /* Sidebar */
-        #sidebar { 
-            width: 30%; 
-            min-width: 300px; 
-            background: var(--sidebar); 
-            border-right: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Main View */
-        #mainContent { flex: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; }
-
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            #sidebar { display: none; width: 100%; }
-            #sidebar.active { display: flex; position: absolute; z-index: 100; height: 100%; }
-            #mainContent { display: flex; }
-            #mainContent.hidden { display: none; }
-        }
-
-        /* Screens */
-        .screen { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.3s ease; }
+        .screen { display: none; flex-direction: column; height: 100%; }
         .screen.active { display: flex; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; background-color: var(--bg); }
+        .msg { padding: 10px 14px; border-radius: 12px; max-width: 75%; font-size: 15px; }
+        .msg.me { background: var(--msg-me); align-self: flex-end; }
+        .msg.other { background: var(--msg-them); align-self: flex-start; }
 
-        /* Header */
-        .header { 
-            padding: 15px 20px; background: var(--panel); 
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
+        input, select { background: #2a3942; border: 1px solid #3b4a54; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; }
+        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .del-btn { background: #ef5350; font-size: 10px; padding: 4px 8px; }
 
-        /* PFP & Avatars */
-        .pfp { width: 40px; height: 40px; border-radius: 50%; background: #3b4a54; object-fit: cover; }
-        .pfp-large { width: 60px; height: 60px; border-radius: 50%; margin-bottom: 10px; }
-
-        /* List Items (Saved Rooms / Users) */
-        .list-item { 
-            padding: 12px 15px; border-radius: 12px; margin: 5px 10px; 
-            display: flex; align-items: center; gap: 12px; 
-            cursor: pointer; transition: 0.2s; background: var(--glass);
-        }
-        .list-item:hover { background: rgba(255,255,255,0.08); }
-        .list-item b { flex: 1; font-size: 15px; }
-
-        /* Chat Styles */
-        #chatBox { 
-            flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px;
-            background-image: linear-gradient(var(--bg), var(--bg)), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-            background-blend-mode: saturation;
-        }
-        .msg { padding: 10px 14px; border-radius: 15px; max-width: 75%; font-size: 15px; position: relative; }
-        .msg.me { background: var(--msg-me); align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg.other { background: var(--msg-them); align-self: flex-start; border-bottom-left-radius: 2px; display: flex; gap: 10px; }
-        
-        /* Auth Screen */
-        #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        #loginScreen.active { display: flex; }
-        .login-card { background: var(--panel); padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; }
-
-        input { background: #2a3942; border: 1px solid #3b4a54; color: white; padding: 14px; border-radius: 12px; margin-bottom: 12px; width: 100%; font-size: 16px; outline: none; }
-        button { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; }
-        
-        .save-btn { background: transparent; color: #ffca28; font-size: 20px; width: auto; }
-        .scroll-v { overflow-y: auto; flex: 1; }
-        .section-title { padding: 20px 20px 10px; font-size: 12px; color: var(--accent); letter-spacing: 1px; font-weight: bold; }
+        #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .admin-box { background: rgba(239, 83, 80, 0.1); border: 1px solid #ef5350; padding: 10px; border-radius: 10px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="loginScreen">
-        <div class="login-card">
-            <h1>Pro Chat</h1>
-            <p style="color: #8696a0; margin-bottom: 25px;">Simple login, infinite vibes.</p>
-            <input type="text" id="regUser" placeholder="Username">
-            <input type="password" id="regPass" placeholder="Password">
-            <button onclick="handleAuth()">Enter</button>
+<div id="loginOverlay">
+    <div style="width: 300px; text-align: center;">
+        <h1>Pro Chat</h1><br>
+        <input type="text" id="regUser" placeholder="Username">
+        <input type="password" id="regPass" placeholder="Password">
+        <button onclick="handleAuth()" style="width:100%">Sign In</button>
+    </div>
+</div>
+
+<div id="sidebar">
+    <div class="header">
+        <img id="myPFP" class="pfp" src="" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=user'">
+        <b id="myName">User</b>
+        <button onclick="showScreen('settingsScreen')" style="background:transparent; font-size:18px">⚙️</button>
+    </div>
+    
+    <div class="scroll-v">
+        <p style="font-size:11px; color:var(--accent); margin: 10px 5px;">SAVED GROUPS</p>
+        <div id="savedRoomsList"></div>
+        
+        <p style="font-size:11px; color:var(--accent); margin: 20px 5px 10px;">USERS</p>
+        <div id="userList"></div>
+
+        <div id="adminPanel" style="display:none" class="admin-box">
+            <p style="font-size:11px; color:#ef5350; font-weight:bold;">SYSTEM ADMIN (OWEN)</p>
+            <div id="adminUserList"></div>
+        </div>
+    </div>
+</div>
+
+<div id="mainContent">
+    <div id="homeScreen" class="screen active">
+        <div class="header"><h2>Dashboard</h2></div>
+        <div style="padding: 20px;">
+            <input type="text" id="roomInp" placeholder="Enter Room Name...">
+            <button onclick="joinRoom()" style="width:100%">Join Group</button>
         </div>
     </div>
 
-    <div id="appContainer">
-        <div id="sidebar">
-            <div class="header">
-                <img id="myPFP" class="pfp" src="" alt="">
-                <b id="myName">User</b>
-                <button onclick="logout()" style="width:auto; padding:5px 10px; background:#ef5350; font-size:12px">Log out</button>
-            </div>
-            
-            <div class="scroll-v">
-                <div class="section-title">SAVED GROUPS</div>
-                <div id="savedRoomsList"></div>
-
-                <div class="section-title">GLOBAL USERS</div>
-                <div id="userList"></div>
-            </div>
+    <div id="chatScreen" class="screen">
+        <div class="header">
+            <button onclick="showScreen('homeScreen')" style="background:transparent; font-size:20px">‹</button>
+            <h2 id="chatTitle">Room</h2>
+            <button onclick="saveRoom()" style="background:transparent">⭐</button>
         </div>
-
-        <div id="mainContent">
-            <div id="homeScreen" class="screen active">
-                <div class="header">
-                    <button class="mobile-only" onclick="toggleSidebar()" style="width:auto; background:transparent; display:none">☰</button>
-                    <h2>Dashboard</h2>
-                </div>
-                <div style="padding: 20px;">
-                    <div style="background: var(--panel); padding: 20px; border-radius: 20px;">
-                        <h3>Create or Join Group</h3>
-                        <p style="color: #8696a0; margin-bottom: 15px;">Type a name to start chatting</p>
-                        <input type="text" id="newRoomInput" placeholder="Ex: GamerSquad">
-                        <button onclick="joinNamedRoom()">Join Group</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="chatScreen" class="screen">
-                <div class="header">
-                    <div style="display:flex; align-items:center; gap:12px">
-                        <span onclick="goHome()" style="font-size:24px; cursor:pointer">‹</span>
-                        <h2 id="chatTitle">Room</h2>
-                    </div>
-                    <div style="display:flex; gap:10px">
-                        <button class="save-btn" onclick="saveCurrentRoom()" title="Save Group">⭐</button>
-                        <button onclick="toggleNotifications()" id="notifToggle" style="background:transparent; font-size:18px; width:auto">🔔</button>
-                    </div>
-                </div>
-                <div id="chatBox"></div>
-                <div style="padding: 15px; background: var(--panel); display: flex; gap: 10px; align-items: center;">
-                    <button onclick="sendAction('🍕 is eating...')" style="background:transparent; font-size:24px; width:auto">🍕</button>
-                    <input type="text" id="messageInput" placeholder="Message" style="margin-bottom:0" onkeypress="if(event.key==='Enter') sendMsg()">
-                    <button onclick="sendMsg()" style="width:60px">➤</button>
-                </div>
-            </div>
+        <div id="chatBox"></div>
+        <div class="header">
+            <input type="text" id="msgInp" placeholder="Type a message..." style="margin:0; flex:1; margin-right:10px" onkeypress="if(event.key==='Enter') sendMsg()">
+            <button onclick="sendMsg()">Send</button>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded, onValue, set, get, off } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
-            authDomain: "mychatapp-10a99.firebaseapp.com",
-            projectId: "mychatapp-10a99",
-            databaseURL: "https://mychatapp-10a99-default-rtdb.firebaseio.com/" 
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        let currentUser = localStorage.getItem("chatUser");
-        let currentRoom = null;
-        let roomRef = null;
-        let savedRooms = JSON.parse(localStorage.getItem("savedRooms") || "[]");
-
-        // Helper: Get PFP
-        const getPFP = (name) => `https://api.dicebear.com/7.x/bottts/svg?seed=${name}`;
-
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        window.handleAuth = async function() {
-            const user = document.getElementById("regUser").value.trim();
-            const pass = document.getElementById("regPass").value.trim();
-            if(!user || !pass) return;
-
-            const userPath = ref(db, 'users/' + user);
-            const snap = await get(userPath);
-            if(snap.exists() && snap.val().pass !== pass) return alert("Wrong password");
+    <div id="settingsScreen" class="screen">
+        <div class="header"><h2>Settings</h2><button onclick="showScreen('homeScreen')">Done</button></div>
+        <div style="padding: 20px;">
+            <label>Profile Picture URL</label>
+            <input type="text" id="pfpUrlInp" placeholder="Link to image..." onchange="updatePFP(this.value)">
             
-            await set(userPath, { pass: pass, status: 'online' });
-            loginSuccess(user);
-        }
+            <label>App Theme</label>
+            <select onchange="changeTheme(this.value)">
+                <option value="dark">Dark Mode</option>
+                <option value="light">Light Mode</option>
+                <option value="purple">Midnight Purple</option>
+                <option value="oled">OLED Black</option>
+            </select>
 
-        function loginSuccess(user) {
-            currentUser = user;
-            localStorage.setItem("chatUser", user);
-            document.getElementById("loginScreen").classList.remove("active");
-            document.getElementById("myName").innerText = user;
-            document.getElementById("myPFP").src = getPFP(user);
-            loadUserList();
-            renderSavedRooms();
-        }
+            <button onclick="logout()" style="width:100%; background:#8696a0; margin-top:20px">Logout</button>
+            <button onclick="deleteAccount()" style="width:100%; background:#ef5350; margin-top:10px">Delete My Account</button>
+        </div>
+    </div>
+</div>
 
-        function loadUserList() {
-            onValue(ref(db, 'users'), (snapshot) => {
-                const list = document.getElementById("userList");
-                list.innerHTML = "";
-                snapshot.forEach(child => {
-                    const div = document.createElement("div");
-                    div.className = "list-item";
-                    div.innerHTML = `<img class="pfp" src="${getPFP(child.key)}"><b>${child.key}</b><div style="width:8px; height:8px; background:#4caf50; border-radius:50%"></div>`;
-                    list.appendChild(div);
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
+        authDomain: "mychatapp-10a99.firebaseapp.com",
+        projectId: "mychatapp-10a99",
+        databaseURL: "https://mychatapp-10a99-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let user = localStorage.getItem("chatUser");
+    let room = null;
+    let roomRef = null;
+
+    // --- Auth & Presence ---
+    window.handleAuth = async () => {
+        const u = document.getElementById("regUser").value.trim();
+        const p = document.getElementById("regPass").value.trim();
+        if(!u || !p) return;
+
+        const uRef = ref(db, 'users/' + u);
+        const snap = await get(uRef);
+        if(snap.exists() && snap.val().pass !== p) return alert("Wrong password");
+
+        if(!snap.exists()) await set(uRef, { pass: p, pfp: `https://api.dicebear.com/7.x/bottts/svg?seed=${u}` });
+        
+        user = u;
+        localStorage.setItem("chatUser", u);
+        initApp();
+    };
+
+    function initApp() {
+        document.getElementById("loginOverlay").style.display = "none";
+        document.getElementById("myName").innerText = user;
+        
+        // Setup Presence
+        const statusRef = ref(db, 'status/' + user);
+        const connectedRef = ref(db, '.info/connected');
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                onDisconnect(statusRef).set("offline");
+                set(statusRef, "online");
+            }
+        });
+
+        // Check for Admin
+        if(user === "Owen") document.getElementById("adminPanel").style.display = "block";
+
+        loadGlobals();
+        changeTheme(localStorage.getItem("chatTheme") || 'dark');
+        loadPFP();
+        renderSaved();
+    }
+
+    // --- Core Logic ---
+    function loadGlobals() {
+        onValue(ref(db, 'users'), (snap) => {
+            const list = document.getElementById("userList");
+            const adminList = document.getElementById("adminUserList");
+            list.innerHTML = ""; adminList.innerHTML = "";
+            
+            snap.forEach(child => {
+                const name = child.key;
+                const data = child.val();
+                
+                // Track online status from the status node
+                onValue(ref(db, 'status/' + name), (sSnap) => {
+                    const status = sSnap.val() || "offline";
+                    const item = document.createElement("div");
+                    item.className = "list-item";
+                    item.innerHTML = `
+                        <img class="pfp" src="${data.pfp}">
+                        <div style="flex:1"><b>${name}</b></div>
+                        <div class="status-dot ${status}"></div>
+                    `;
+                    
+                    // Add to lists (simple deduplication)
+                    const old = document.getElementById("u-"+name);
+                    if(old) old.remove();
+                    item.id = "u-"+name;
+                    list.appendChild(item);
+
+                    if(user === "Owen") {
+                        const adminItem = document.createElement("div");
+                        adminItem.style = "display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px";
+                        adminItem.innerHTML = `<span>${name}</span> <button class="del-btn" onclick="sysDelete('${name}')">Delete</button>`;
+                        adminList.appendChild(adminItem);
+                    }
                 });
             });
+        });
+    }
+
+    window.joinRoom = (rName) => {
+        room = rName || document.getElementById("roomInp").value.trim();
+        if(!room) return;
+        document.getElementById("chatTitle").innerText = room;
+        document.getElementById("chatBox").innerHTML = "";
+        showScreen('chatScreen');
+        if(roomRef) off(roomRef);
+        roomRef = ref(db, 'rooms/' + room);
+        onChildAdded(roomRef, (snap) => renderMsg(snap.val()));
+    };
+
+    window.sendMsg = () => {
+        const inp = document.getElementById("msgInp");
+        if(!inp.value) return;
+        push(ref(db, 'rooms/' + room), { name: user, text: inp.value, pfp: localStorage.getItem("chatPFP") });
+        inp.value = "";
+    };
+
+    function renderMsg(data) {
+        const box = document.getElementById("chatBox");
+        const div = document.createElement("div");
+        const isMe = data.name === user;
+        div.className = `msg ${isMe ? 'me' : 'other'}`;
+        div.innerHTML = `<b style="font-size:10px; display:block; color:var(--accent)">${isMe ? '' : data.name}</b>${data.text}`;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // --- Settings & Admin ---
+    window.changeTheme = (t) => {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem("chatTheme", t);
+    };
+
+    window.updatePFP = (url) => {
+        set(ref(db, `users/${user}/pfp`), url);
+        localStorage.setItem("chatPFP", url);
+        document.getElementById("myPFP").src = url;
+    };
+
+    async function loadPFP() {
+        const snap = await get(ref(db, `users/${user}/pfp`));
+        const url = snap.val() || `https://api.dicebear.com/7.x/bottts/svg?seed=${user}`;
+        document.getElementById("myPFP").src = url;
+        localStorage.setItem("chatPFP", url);
+    }
+
+    window.sysDelete = (target) => {
+        if(confirm(`Delete ${target}?`)) {
+            remove(ref(db, 'users/' + target));
+            remove(ref(db, 'status/' + target));
         }
+    };
 
-        window.saveCurrentRoom = function() {
-            if(!savedRooms.includes(currentRoom)) {
-                savedRooms.push(currentRoom);
-                localStorage.setItem("savedRooms", JSON.stringify(savedRooms));
-                renderSavedRooms();
-                alert("Room saved to your Quick Access!");
-            }
+    window.deleteAccount = () => {
+        if(confirm("Permanently delete your account?")) {
+            remove(ref(db, 'users/' + user));
+            logout();
         }
+    };
 
-        function renderSavedRooms() {
-            const list = document.getElementById("savedRoomsList");
-            list.innerHTML = savedRooms.length ? "" : "<p style='padding:15px; color:gray; font-size:13px'>No saved groups yet.</p>";
-            savedRooms.forEach(room => {
-                const div = document.createElement("div");
-                div.className = "list-item";
-                div.innerHTML = `<div class="avatar" style="background:var(--accent); width:30px; height:30px; border-radius:8px; display:grid; place-items:center">#</div><b>${room}</b>`;
-                div.onclick = () => connectToRoom(room);
-                list.appendChild(div);
-            });
+    window.saveRoom = () => {
+        let saved = JSON.parse(localStorage.getItem("saved") || "[]");
+        if(!saved.includes(room)) {
+            saved.push(room);
+            localStorage.setItem("saved", JSON.stringify(saved));
+            renderSaved();
         }
+    };
 
-        window.joinNamedRoom = () => connectToRoom(document.getElementById("newRoomInput").value.trim() || "Lobby");
-
-        function connectToRoom(roomName) {
-            currentRoom = roomName;
-            document.getElementById("chatTitle").innerText = roomName;
-            document.getElementById("chatBox").innerHTML = "";
-            showScreen("chatScreen");
-
-            if (roomRef) off(roomRef);
-            roomRef = ref(db, "rooms/" + roomName);
-            onChildAdded(roomRef, (snapshot) => renderMessage(snapshot.val()));
-        }
-
-        function renderMessage(data) {
-            const chatBox = document.getElementById("chatBox");
+    function renderSaved() {
+        const list = document.getElementById("savedRoomsList");
+        list.innerHTML = "";
+        const saved = JSON.parse(localStorage.getItem("saved") || "[]");
+        saved.forEach(r => {
             const div = document.createElement("div");
-            const isMe = data.name === currentUser;
-            
-            if (data.type === "action") {
-                div.className = "msg action";
-                div.style = "align-self:center; font-style:italic; color:#ffca28; background:rgba(0,0,0,0.2); border-radius:20px; padding:5px 15px; font-size:13px";
-                div.innerText = `${data.name} ${data.text}`;
-            } else {
-                div.className = `msg ${isMe ? 'me' : 'other'}`;
-                const pfpHtml = isMe ? '' : `<img class="pfp" style="width:30px; height:30px" src="${getPFP(data.name)}">`;
-                div.innerHTML = `${pfpHtml} <div><b style="display:block; font-size:11px; color:var(--accent)">${isMe ? '' : data.name}</b>${data.text}</div>`;
-            }
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+            div.className = "list-item";
+            div.innerHTML = `<div style="background:var(--accent); width:30px; height:30px; border-radius:8px; display:grid; place-items:center">#</div><b>${r}</b>`;
+            div.onclick = () => joinRoom(r);
+            list.appendChild(div);
+        });
+    }
 
-        window.sendMsg = function() {
-            const inp = document.getElementById("messageInput");
-            if(!inp.value.trim()) return;
-            push(ref(db, "rooms/" + currentRoom), { name: currentUser, text: inp.value, type: "text" });
-            inp.value = "";
-        }
+    window.showScreen = (id) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    };
 
-        window.sendAction = (txt) => push(ref(db, "rooms/" + currentRoom), { name: currentUser, text: txt, type: "action" });
+    window.logout = () => { localStorage.removeItem("chatUser"); location.reload(); };
 
-        window.goHome = () => showScreen("homeScreen");
-        window.logout = () => { localStorage.removeItem("chatUser"); location.reload(); };
-
-        // Initial Auth Check
-        if (!currentUser) document.getElementById("loginScreen").classList.add("active");
-        else loginSuccess(currentUser);
-    </script>
+    if(user) initApp();
+</script>
 </body>
 </html>
