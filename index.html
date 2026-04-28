@@ -69,7 +69,6 @@
         const chatBox = document.getElementById("chatBox");
         const msgInp = document.getElementById("messageInput");
 
-        // 1. Check URL for room parameter (?room=XYZ)
         const urlParams = new URLSearchParams(window.location.search);
         const roomFromUrl = urlParams.get('room');
 
@@ -77,6 +76,23 @@
         roomInp.value = roomFromUrl || localStorage.getItem("chatRoom") || "Lobby";
 
         let currentRoomRef = null;
+
+        // --- Notification Logic ---
+        function requestNotifyPermission() {
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+        }
+
+        function showNotification(sender, text) {
+            // Only show notification if permission granted and tab is hidden/not focused
+            if (Notification.permission === "granted" && document.hidden) {
+                new Notification(`New message from ${sender}`, {
+                    body: text,
+                    icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png"
+                });
+            }
+        }
 
         function stringToColor(str) {
             let hash = 0;
@@ -89,7 +105,9 @@
             localStorage.setItem("chatRoom", roomName);
             localStorage.setItem("chatUser", userInp.value.trim());
 
-            // Clear previous listener and UI
+            // Ask for permission when joining
+            requestNotifyPermission();
+
             if (currentRoomRef) off(currentRoomRef);
             chatBox.innerHTML = `<p style='text-align:center; font-size:12px; opacity:0.5; margin-bottom:10px;'>Room: ${roomName}</p>`; 
 
@@ -99,6 +117,11 @@
                 const data = snapshot.val();
                 const isMe = data.name === userInp.value.trim();
                 
+                // Trigger notification if it's someone else
+                if (!isMe) {
+                    showNotification(data.name, data.text);
+                }
+
                 const msgDiv = document.createElement("div");
                 msgDiv.className = `msg ${isMe ? 'me' : 'other'}`;
                 if (!isMe) msgDiv.style.backgroundColor = stringToColor(data.name);
