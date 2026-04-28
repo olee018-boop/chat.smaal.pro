@@ -3,57 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Private Chat</title>
+    <title>Pro Private Chat - Dashboard</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #111b21; display: flex; justify-content: center; height: 100vh; color: #e9edef; }
+        body { background-color: #111b21; color: #e9edef; height: 100vh; overflow: hidden; }
         
-        #chatWrapper { width: 100%; max-width: 600px; height: 100vh; background: #0b141a; display: flex; flex-direction: column; border-left: 1px solid #3b4a54; border-right: 1px solid #3b4a54; }
-        
-        #topBar { background: #202c33; padding: 10px; display: flex; gap: 8px; border-bottom: 1px solid #3b4a54; align-items: center; }
-        #topBar input { background: #111b21; border: 1px solid #3b4a54; color: white; padding: 8px; border-radius: 5px; flex: 1; outline: none; font-size: 14px; }
-        #topBar button { background: #00a884; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        #topBar button:hover { background: #008f6f; }
-        
-        /* Specific button colors */
-        #shareBtn { background: #3b4a54 !important; }
-        #notifToggle { background: #3b4a54; font-size: 16px; }
-        #notifToggle.on { background: #00a884 !important; }
+        /* Layout Screens */
+        .screen { display: none; flex-direction: column; height: 100vh; width: 100%; max-width: 600px; margin: 0 auto; border-left: 1px solid #3b4a54; border-right: 1px solid #3b4a54; background: #0b141a; }
+        .active { display: flex; }
 
+        /* Login Styling */
+        #loginScreen { justify-content: center; padding: 40px; text-align: center; }
+        .login-card { background: #202c33; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        input { background: #2a3942; border: 1px solid #3b4a54; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; width: 100%; outline: none; }
+        button { background: #00a884; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        button:hover { background: #008f6f; }
+
+        /* Header */
+        .header { background: #202c33; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3b4a54; }
+        .header h2 { font-size: 18px; }
+
+        /* Home Screen Specifics */
+        .section-label { padding: 15px 15px 5px; font-size: 12px; color: #00a884; text-transform: uppercase; font-weight: bold; }
+        .list-container { flex: 1; overflow-y: auto; padding: 10px; }
+        .item-card { background: #202c33; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .item-card span { font-weight: 500; }
+        .join-btn { width: auto; padding: 5px 15px; font-size: 12px; }
+
+        /* Chat Styling */
         #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; background-image: linear-gradient(rgba(11,20,26,0.95), rgba(11,20,26,0.95)), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-        
-        .msg { margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; font-size: 14px; position: relative; color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.3); line-height: 1.4; }
-        .msg.other { align-self: flex-start; border-top-left-radius: 0; }
+        .msg { margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; font-size: 14px; color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .msg.me { background: #005c4b !important; align-self: flex-end; border-top-right-radius: 0; }
+        .msg.other { align-self: flex-start; border-top-left-radius: 0; }
+        .msg.action { background: rgba(255, 193, 7, 0.2) !important; align-self: center; border-radius: 20px; font-style: italic; color: #ffc107; border: 1px solid #ffc107; }
         
-        .msg b { display: block; font-size: 11px; margin-bottom: 2px; filter: brightness(1.8); }
-        .msg small { font-size: 10px; opacity: 0.6; display: block; text-align: right; margin-top: 4px; }
+        .controls { padding: 15px; background: #202c33; display: flex; gap: 10px; align-items: center; }
+        #messageInput { flex: 1; margin-bottom: 0; }
+        .action-btn { background: #3b4a54; width: auto; font-size: 18px; padding: 8px; }
 
-        .controls { padding: 15px; background: #202c33; display: flex; gap: 10px; }
-        #messageInput { flex: 1; background: #2a3942; border: none; color: white; padding: 12px; border-radius: 8px; outline: none; }
-        #sendBtn { background: #00a884; color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #notifToggle.on { background: #00a884; }
     </style>
 </head>
 <body>
 
-    <div id="chatWrapper">
-        <div id="topBar">
-            <input type="text" id="usernameInput" placeholder="Name">
-            <input type="text" id="roomInput" placeholder="Room">
-            <button onclick="connectToRoom()">Join</button>
-            <button id="notifToggle" onclick="toggleNotifications()" title="Toggle Notifications">🔔</button>
-            <button id="shareBtn" onclick="copyRoomLink()" title="Copy Room Link">🔗</button>
+    <div id="loginScreen" class="screen active">
+        <div class="login-card">
+            <h1 style="margin-bottom: 20px;">Welcome</h1>
+            <input type="text" id="regUser" placeholder="Username">
+            <input type="password" id="regPass" placeholder="Password">
+            <button onclick="handleAuth()">Enter Chat</button>
+        </div>
+    </div>
+
+    <div id="homeScreen" class="screen">
+        <div class="header">
+            <h2 id="welcomeText">Home</h2>
+            <button onclick="logout()" style="width:auto; padding: 5px 10px; background:#f44336">Logout</button>
+        </div>
+        
+        <div class="section-label">Create or Join Group</div>
+        <div style="padding: 10px; display: flex; gap: 10px;">
+            <input type="text" id="newRoomInput" placeholder="Group Name..." style="margin-bottom:0">
+            <button onclick="joinNamedRoom()" style="width:100px">Go</button>
+        </div>
+
+        <div class="section-label">Users Online</div>
+        <div id="userList" class="list-container">
+            </div>
+    </div>
+
+    <div id="chatScreen" class="screen">
+        <div class="header">
+            <button onclick="goHome()" style="width:auto; background:transparent; font-size:20px">←</button>
+            <h2 id="chatTitle">Room</h2>
+            <div style="display:flex; gap:5px">
+                <button id="notifToggle" onclick="toggleNotifications()" style="width:40px">🔔</button>
+                <button onclick="copyRoomLink()" style="width:40px; background:#3b4a54">🔗</button>
+            </div>
         </div>
         <div id="chatBox"></div>
         <div class="controls">
-            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleKey(event)">
-            <button id="sendBtn" onclick="sendMsg()">Send</button>
+            <button class="action-btn" onclick="sendAction('🍕 is eating...')" title="Eat">🍕</button>
+            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <button id="sendBtn" onclick="sendMsg()" style="width:80px">Send</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded, off } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, onValue, set, get, off } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
@@ -62,147 +100,186 @@
             storageBucket: "mychatapp-10a99.firebasestorage.app",
             messagingSenderId: "8158664716",
             appId: "1:8158664716:web:8a25281c2a1714ea557629",
-            measurementId: "G-XHEXJCSHC2",
             databaseURL: "https://mychatapp-10a99-default-rtdb.firebaseio.com/" 
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const userInp = document.getElementById("usernameInput");
-        const roomInp = document.getElementById("roomInput");
-        const chatBox = document.getElementById("chatBox");
-        const msgInp = document.getElementById("messageInput");
-        const notifBtn = document.getElementById("notifToggle");
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomFromUrl = urlParams.get('room');
-
-        userInp.value = localStorage.getItem("chatUser") || "Guest" + Math.floor(Math.random() * 1000);
-        roomInp.value = roomFromUrl || localStorage.getItem("chatRoom") || "Lobby";
-
-        let currentRoomRef = null;
-        // Load initial notification preference
+        let currentUser = localStorage.getItem("chatUser") || null;
+        let currentRoom = null;
+        let roomRef = null;
         let notificationsEnabled = localStorage.getItem("notifEnabled") === "true";
 
-        // --- Notification Logic ---
-        function updateNotifUI() {
-            if (notificationsEnabled && Notification.permission === "granted") {
-                notifBtn.classList.add("on");
-                notifBtn.innerText = "🔔";
-            } else {
-                notifBtn.classList.remove("on");
-                notifBtn.innerText = "🔕";
-            }
+        // --- Navigation ---
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
 
+        // --- Auth Logic ---
+        window.handleAuth = async function() {
+            const user = document.getElementById("regUser").value.trim();
+            const pass = document.getElementById("regPass").value.trim();
+            if (!user || !pass) return alert("Fill everything in!");
+
+            const userPath = ref(db, 'users/' + user);
+            const snapshot = await get(userPath);
+
+            if (snapshot.exists()) {
+                if (snapshot.val().pass === pass) {
+                    loginSuccess(user);
+                } else {
+                    alert("Wrong password!");
+                }
+            } else {
+                // Register new
+                await set(userPath, { pass: pass, status: "online" });
+                loginSuccess(user);
+            }
+        };
+
+        function loginSuccess(user) {
+            currentUser = user;
+            localStorage.setItem("chatUser", user);
+            document.getElementById("welcomeText").innerText = "Hi, " + user;
+            showScreen("homeScreen");
+            loadUserList();
+        }
+
+        window.logout = function() {
+            localStorage.removeItem("chatUser");
+            location.reload();
+        };
+
+        // --- User List ---
+        function loadUserList() {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                const list = document.getElementById("userList");
+                list.innerHTML = "";
+                snapshot.forEach((child) => {
+                    const div = document.createElement("div");
+                    div.className = "item-card";
+                    div.innerHTML = `<span>👤 ${child.key}</span> <small style="color:gray">Online</small>`;
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        // --- Chat Logic ---
+        window.joinNamedRoom = function() {
+            const name = document.getElementById("newRoomInput").value.trim() || "General";
+            connectToRoom(name);
+        };
+
+        window.goHome = function() {
+            if (roomRef) off(roomRef);
+            showScreen("homeScreen");
+        };
+
+        function connectToRoom(roomName) {
+            currentRoom = roomName;
+            document.getElementById("chatTitle").innerText = roomName;
+            document.getElementById("chatBox").innerHTML = "";
+            showScreen("chatScreen");
+
+            if (roomRef) off(roomRef);
+            roomRef = ref(db, "rooms/" + roomName);
+
+            onChildAdded(roomRef, (snapshot) => {
+                const data = snapshot.val();
+                renderMessage(data);
+                if (data.name !== currentUser) {
+                    showNotification(data.name, data.text);
+                }
+            });
+        }
+
+        function renderMessage(data) {
+            const chatBox = document.getElementById("chatBox");
+            const div = document.createElement("div");
+            const isMe = data.name === currentUser;
+            
+            if (data.type === "action") {
+                div.className = "msg action";
+                div.innerText = `${data.name} ${data.text}`;
+            } else {
+                div.className = `msg ${isMe ? 'me' : 'other'}`;
+                if (!isMe) div.style.backgroundColor = stringToColor(data.name);
+                div.innerHTML = `<b>${isMe ? 'You' : data.name}</b>${data.text}<small style="font-size:10px; display:block; text-align:right; opacity:0.6">${data.time}</small>`;
+            }
+            
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        window.sendMsg = function() {
+            const inp = document.getElementById("messageInput");
+            if (!inp.value.trim()) return;
+            
+            push(ref(db, "rooms/" + currentRoom), {
+                name: currentUser,
+                text: inp.value,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                type: "text"
+            });
+            inp.value = "";
+        };
+
+        window.sendAction = function(actionText) {
+            push(ref(db, "rooms/" + currentRoom), {
+                name: currentUser,
+                text: actionText,
+                type: "action"
+            });
+        };
+
+        // --- Notifications & Helpers ---
         window.toggleNotifications = function() {
-            if (!("Notification" in window)) {
-                alert("This browser does not support notifications.");
-                return;
-            }
-
-            if (Notification.permission === "denied") {
-                alert("Notifications are blocked by your browser. Please enable them in your site settings.");
-                return;
-            }
-
             if (Notification.permission !== "granted") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
+                Notification.requestPermission().then(p => {
+                    if (p === "granted") {
                         notificationsEnabled = true;
-                        finishToggle();
+                        updateNotifUI();
                     }
                 });
             } else {
                 notificationsEnabled = !notificationsEnabled;
-                finishToggle();
+                updateNotifUI();
             }
+            localStorage.setItem("notifEnabled", notificationsEnabled);
         };
 
-        function finishToggle() {
-            localStorage.setItem("notifEnabled", notificationsEnabled);
-            updateNotifUI();
+        function updateNotifUI() {
+            const btn = document.getElementById("notifToggle");
+            notificationsEnabled ? btn.classList.add("on") : btn.classList.remove("on");
         }
 
         function showNotification(sender, text) {
-            // Only trigger if enabled, permitted, and the user isn't currently looking at the chat
-            if (notificationsEnabled && Notification.permission === "granted" && document.hidden) {
-                new Notification(`New message from ${sender}`, {
-                    body: text,
-                    icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png"
-                });
+            if (notificationsEnabled && document.hidden) {
+                new Notification(sender, { body: text });
             }
         }
 
         function stringToColor(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
-            return `hsl(${Math.abs(hash) % 360}, 50%, 30%)`;
+            return `hsl(${Math.abs(hash) % 360}, 40%, 35%)`;
         }
 
-        window.connectToRoom = function() {
-            const roomName = roomInp.value.trim() || "Lobby";
-            localStorage.setItem("chatRoom", roomName);
-            localStorage.setItem("chatUser", userInp.value.trim());
-
-            if (currentRoomRef) off(currentRoomRef);
-            chatBox.innerHTML = `<p style='text-align:center; font-size:12px; opacity:0.5; margin-bottom:10px;'>Room: ${roomName}</p>`; 
-
-            currentRoomRef = ref(db, "rooms/" + roomName);
-
-            onChildAdded(currentRoomRef, (snapshot) => {
-                const data = snapshot.val();
-                const isMe = data.name === userInp.value.trim();
-                
-                if (!isMe) {
-                    showNotification(data.name, data.text);
-                }
-
-                const msgDiv = document.createElement("div");
-                msgDiv.className = `msg ${isMe ? 'me' : 'other'}`;
-                if (!isMe) msgDiv.style.backgroundColor = stringToColor(data.name);
-                
-                msgDiv.innerHTML = `
-                    <b>${isMe ? 'You' : data.name}</b>
-                    ${data.text}
-                    <small>${data.time}</small>
-                `;
-                
-                chatBox.appendChild(msgDiv);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            });
-        };
-
-        window.sendMsg = function() {
-            const text = msgInp.value.trim();
-            const name = userInp.value.trim();
-            const room = roomInp.value.trim();
-
-            if (text !== "" && room !== "") {
-                push(ref(db, "rooms/" + room), {
-                    name: name,
-                    text: text,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                });
-                msgInp.value = "";
-            }
-        };
-
-        window.handleKey = function(e) {
-            if (e.key === "Enter") sendMsg();
-        };
-
         window.copyRoomLink = function() {
-            const room = roomInp.value.trim();
-            const url = window.location.origin + window.location.pathname + "?room=" + encodeURIComponent(room);
-            navigator.clipboard.writeText(url);
-            alert("Room link copied to clipboard!");
+            const url = window.location.origin + window.location.pathname + "?room=" + encodeURIComponent(currentRoom);
+            navigator.clipboard.writeText(url).then(() => alert("Room Link Copied!"));
         };
 
-        // Initialize UI and connection
+        // Auto-login check
+        if (currentUser) {
+            loginSuccess(currentUser);
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('room')) connectToRoom(urlParams.get('room'));
+        }
         updateNotifUI();
-        window.connectToRoom();
     </script>
 </body>
 </html>
