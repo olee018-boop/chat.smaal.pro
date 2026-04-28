@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v4</title>
+    <title>Pro Chat Elite v4.1</title>
     <style>
         :root {
             --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
@@ -13,7 +13,7 @@
         [data-theme="midnight"] { --bg: #020617; --accent: #6366f1; --msg-me: #4338ca; }
         [data-theme="rose"] { --bg: #0f0505; --accent: #f43f5e; --msg-me: #be123c; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; transition: background 0.3s ease; }
         body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
 
         #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 500px; margin: 0 auto; position: relative; overflow: hidden; }
@@ -24,68 +24,65 @@
 
         .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         
-        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 30px; }
+        /* Fixed Scrolling Logic */
+        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         
-        .nav-bar { position: absolute; bottom: 15px; left: 5%; width: 90%; height: 65px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
+        .nav-bar { position: absolute; bottom: 15px; left: 5%; width: 90%; height: 65px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; opacity: 0.5; }
-        .nav-btn.active { opacity: 1; color: var(--accent); }
+        .nav-btn.active { opacity: 1; color: var(--accent); transform: scale(1.1); }
 
-        .input-wrap { padding: 12px; display: flex; gap: 10px; background: var(--panel); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: 90px; }
+        .input-wrap { padding: 12px; display: flex; gap: 10px; background: var(--panel); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: 90px; z-index: 500; }
 
-        /* Message Styles */
+        /* Message & Reactions */
         .msg { display: flex; gap: 10px; max-width: 85%; position: relative; }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; position: relative; }
+        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; position: relative; word-wrap: break-word; }
         .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
         
-        /* Reactions */
-        .reaction-bar { display: flex; gap: 4px; margin-top: 4px; }
-        .react-btn { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2px 6px; font-size: 12px; cursor: pointer; border: 1px solid transparent; }
-        .react-btn:hover { border-color: var(--accent); }
+        .reaction-bar { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .react-btn { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 2px 6px; font-size: 11px; cursor: pointer; }
         .react-picker { display: none; position: absolute; top: -35px; background: #18181b; padding: 5px; border-radius: 10px; gap: 8px; border: 1px solid #333; z-index: 50; }
         .msg:hover .react-picker { display: flex; }
 
-        /* Discord-style Profile Modal */
-        #profileModal { 
-            display: none; position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,0.8); 
-            align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px);
-        }
-        .profile-card { 
-            background: #18191c; width: 100%; max-width: 320px; border-radius: 16px; overflow: hidden; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative;
-        }
-        .profile-banner { height: 60px; background: var(--accent); width: 100%; }
-        .profile-pfp { width: 80px; height: 80px; border-radius: 50%; border: 6px solid #18191c; margin-top: -40px; margin-left: 15px; position: relative; object-fit: cover; }
-        .profile-body { padding: 15px; }
-        .profile-name { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
-        .profile-bio { font-size: 13px; color: #b9bbbe; margin-bottom: 15px; line-height: 1.4; }
+        .link-text { color: #60a5fa; text-decoration: underline; cursor: pointer; font-weight: bold; }
+        .pfp { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #333; cursor: pointer; flex-shrink: 0; }
 
-        .pfp { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; object-fit: cover; background: #333; }
+        /* Profile Modal (Discord Style) */
+        #profileModal { display: none; position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px); }
+        .profile-card { background: #18191c; width: 100%; max-width: 320px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .profile-banner { height: 70px; width: 100%; transition: 0.3s; }
+        .profile-pfp { width: 85px; height: 85px; border-radius: 50%; border: 6px solid #18191c; margin-top: -45px; margin-left: 15px; object-fit: cover; background: #333; }
+        .profile-body { padding: 15px; color: white; }
+        .profile-name { font-size: 22px; font-weight: bold; margin-bottom: 2px; }
+        .profile-bio { font-size: 14px; color: #b9bbbe; margin-top: 10px; line-height: 1.4; border-top: 1px solid #2f3136; padding-top: 10px; }
+
         input, select, textarea { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; }
-        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; }
+        .sec-btn { background: #27272a; margin-top: 5px; }
+
+        #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="loginScreen">
-    <div style="width: 100%; max-width: 300px; text-align: center;">
-        <h1 style="margin-bottom: 25px;">Pro Chat</h1>
+    <div style="width: 100%; max-width: 300px;">
+        <h1 style="margin-bottom: 20px;">Pro Chat</h1>
         <input type="text" id="userInp" placeholder="Username">
         <input type="password" id="passInp" placeholder="Password">
-        <button onclick="login()" style="width:100%">Enter</button>
+        <button onclick="login()">Sign In</button>
     </div>
 </div>
 
-<div id="profileModal" onclick="closeProfile(event)">
+<div id="profileModal" onclick="this.style.display='none'">
     <div class="profile-card" onclick="event.stopPropagation()">
         <div class="profile-banner" id="p-banner"></div>
         <img src="" class="profile-pfp" id="p-pfp">
         <div class="profile-body">
             <div class="profile-name" id="p-name">Username</div>
-            <div id="p-reputation" style="font-size: 11px; color: var(--accent); margin-bottom: 10px;">Reputation: 0</div>
-            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px; text-transform: uppercase;">About Me</div>
+            <div id="p-rep" style="font-size: 12px; color: var(--accent);">Reputation: 0</div>
             <div class="profile-bio" id="p-bio">No bio set.</div>
-            <button id="likeProfileBtn" style="width:100%; background: #2f3136;">❤️ Like Profile</button>
+            <button id="likeProfileBtn" style="margin-top: 15px; background: #2f3136;">❤️ Like Profile</button>
         </div>
     </div>
 </div>
@@ -94,12 +91,12 @@
     <div id="home" class="screen active">
         <div class="header"><h2>Home</h2></div>
         <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">FRIENDS</p>
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">FRIENDS & DMS</p>
             <div id="friendList"></div>
             <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 25px; margin-bottom: 12px;">CHANNELS</p>
             <div id="roomList"></div>
-            <input type="text" id="newRoomInp" placeholder="Room Name..." style="margin-top:20px">
-            <button onclick="joinRoom()" style="width:100%">Join</button>
+            <input type="text" id="newRoomInp" placeholder="Channel Name..." style="margin-top:20px">
+            <button onclick="joinRoom()">Join Channel</button>
         </div>
     </div>
 
@@ -107,12 +104,12 @@
         <div class="header">
             <span onclick="setTab('home')" style="cursor:pointer">‹ Back</span>
             <b id="chatTitle">Room</b>
-            <span onclick="saveRoom()" style="cursor:pointer">⭐</span>
+            <span id="saveBtn" onclick="saveRoom()" style="cursor:pointer">⭐</span>
         </div>
         <div id="chatBox"></div>
         <div class="input-wrap">
-            <button onclick="document.getElementById('fileInp').click()" style="width:45px; background: #333">+</button>
             <input type="file" id="fileInp" style="display:none" onchange="sendMedia(this)">
+            <button onclick="document.getElementById('fileInp').click()" style="width:45px; background:#333">+</button>
             <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
             <button onclick="sendText()" style="width:60px">➤</button>
         </div>
@@ -122,28 +119,38 @@
         <div class="header"><h2>Community</h2></div>
         <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
             <div id="pendingRequests"></div>
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">EVERYONE</p>
             <div id="allUsers"></div>
         </div>
     </div>
 
     <div id="settings" class="screen">
-        <div class="header"><h2>My Profile</h2></div>
-        <div style="padding: 20px; overflow-y: auto; padding-bottom: 100px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img id="myPFP" class="pfp" style="width:80px; height:80px;" onclick="document.getElementById('pfpInp').click()">
+        <div class="header"><h2>Edit Profile</h2></div>
+        <div style="padding: 20px; overflow-y: auto; padding-bottom: 150px;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <img id="myPFP" class="pfp" style="width:90px; height:90px; margin-bottom:10px; border:3px solid var(--accent)">
+                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn">Update PFP</button>
                 <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
             </div>
-            <label>Bio</label>
-            <textarea id="bioInp" placeholder="Write something about yourself..." style="height:80px; margin-top:5px; margin-bottom:15px; resize: none;"></textarea>
+            
+            <label>About Me</label>
+            <textarea id="bioInp" placeholder="Describe yourself..." style="height:80px; margin-bottom:15px; resize:none;"></textarea>
             
             <label>Banner Color</label>
-            <input type="color" id="bannerInp" style="height:45px; padding:2px; margin-bottom:15px;">
+            <input type="color" id="bannerInp" style="height:45px; padding:2px; margin-bottom:15px">
 
-            <button onclick="saveProfile()" style="width:100%">Save Changes</button>
+            <button onclick="saveProfileChanges()" style="margin-bottom:10px">Save Profile</button>
+            <input type="text" id="newNameInp" placeholder="Change Username">
+            <button onclick="changeUsername()" class="sec-btn">Rename Account</button>
+
+            <select onchange="updateTheme(this.value)" style="margin-top:20px">
+                <option value="dark">Emerald City</option>
+                <option value="midnight">OLED Midnight</option>
+                <option value="rose">Rose Velvet</option>
+            </select>
             
-            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-            <button onclick="logout()" style="background: #333; width:100%">Logout</button>
-            <button onclick="deleteMyAccount()" style="background: transparent; color:#ef4444; margin-top:10px; width:100%">Delete Account</button>
+            <button onclick="logout()" style="margin-top: 40px; background: #333;">Sign Out</button>
+            <button onclick="deleteMyAccount()" style="background: transparent; color:#ef4444; margin-top:10px; border:1px solid #ef4444">Delete Account</button>
         </div>
     </div>
 
@@ -169,88 +176,82 @@
     const db = getDatabase(fbApp);
     let currentUser = localStorage.getItem("chatU");
     let activeChatId = null;
+    let isDM = false;
 
-    // --- Notifications ---
-    if ("Notification" in window && Notification.permission !== "granted") {
-        Notification.requestPermission();
+    // --- Website Notifications ---
+    if ("Notification" in window && Notification.permission !== "granted") Notification.requestPermission();
+    function notify(title, body) {
+        if (document.hidden && Notification.permission === "granted") new Notification(title, { body, icon: localStorage.getItem("pfp") });
     }
 
-    function sendNotify(title, body) {
-        if (Notification.permission === "granted" && document.hidden) {
-            new Notification(title, { body, icon: localStorage.getItem("pfp") });
-        }
-    }
+    // --- Link Guardian ---
+    window.safeLink = (url) => { if(confirm(`Sketchy Link Warning!\n\nAre you sure you want to visit:\n${url}`)) window.open(url, '_blank'); };
+    function parseLinks(text) { return text.replace(/(https?:\/\/[^\s]+)/g, (url) => `<span class="link-text" onclick="safeLink('${url}')">${url}</span>`); }
 
     // --- Auth ---
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim();
         const p = document.getElementById("passInp").value.trim();
         if(!u || !p) return;
-        const uRef = ref(db, 'users/' + u);
-        const snap = await get(uRef);
+        const snap = await get(ref(db, 'users/' + u));
         if(snap.exists()) {
-            if(snap.val().pass !== p && (u.toLowerCase() !== 'owen' || p.toLowerCase() !== 'owen')) return alert("Access Denied");
+            if(snap.val().pass !== p && (u.toLowerCase() !== 'owen' || p.toLowerCase() !== 'owen')) return alert("Invalid Username/Password");
         } else {
-            await set(uRef, { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u, bio: "Hey! I'm using Pro Chat.", banner: "#10b981", reputation: 0 });
+            await set(ref(db, 'users/' + u), { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u, bio: "Member of Pro Chat", banner: "#10b981", reputation: 0 });
         }
         currentUser = u; localStorage.setItem("chatU", u); location.reload();
     };
 
-    // --- Profile Logic ---
-    window.viewProfile = async (username) => {
-        const snap = await get(ref(db, 'users/' + username));
+    // --- Profile System ---
+    window.viewProfile = async (target) => {
+        const snap = await get(ref(db, 'users/' + target));
         if(!snap.exists()) return;
         const d = snap.val();
-        document.getElementById('p-name').innerText = username;
+        document.getElementById('p-name').innerText = target;
         document.getElementById('p-pfp').src = d.pfp;
         document.getElementById('p-banner').style.background = d.banner || '#10b981';
         document.getElementById('p-bio').innerText = d.bio || "No bio set.";
-        document.getElementById('p-reputation').innerText = `Reputation: ${d.reputation || 0}`;
-        
-        const likeBtn = document.getElementById('likeProfileBtn');
-        likeBtn.onclick = () => {
-            update(ref(db, 'users/' + username), { reputation: increment(1) });
-            alert("Profile Liked!");
-            viewProfile(username);
+        document.getElementById('p-rep').innerText = `Reputation: ${d.reputation || 0}`;
+        document.getElementById('likeProfileBtn').onclick = () => {
+            update(ref(db, 'users/' + target), { reputation: increment(1) });
+            alert("Liked!"); viewProfile(target);
         };
-
         document.getElementById('profileModal').style.display = 'flex';
     };
 
-    window.closeProfile = (e) => { document.getElementById('profileModal').style.display = 'none'; };
-
-    window.saveProfile = () => {
+    window.saveProfileChanges = () => {
         const bio = document.getElementById('bioInp').value;
         const banner = document.getElementById('bannerInp').value;
         update(ref(db, 'users/' + currentUser), { bio, banner });
-        alert("Profile Updated!");
+        alert("Saved!");
     };
 
     // --- Chat & Reactions ---
     window.joinRoom = (name) => {
-        const roomName = name || document.getElementById("newRoomInp").value.trim();
-        if(!roomName) return;
-        activeChatId = roomName;
-        document.getElementById("chatTitle").innerText = "# " + roomName;
-        document.getElementById("chatBox").innerHTML = "";
-        setTab('chat');
-        onChildAdded(ref(db, 'rooms/' + roomName), (s) => renderMsg(s.val(), s.key, 'rooms/' + roomName));
+        const r = name || document.getElementById("newRoomInp").value.trim(); if(!r) return;
+        isDM = false; activeChatId = r;
+        document.getElementById("chatTitle").innerText = "# " + r;
+        startChat('rooms/' + r);
     };
 
-    window.sendText = () => {
-        const i = document.getElementById("msgInp"); if(!i.value) return;
-        push(ref(db, 'rooms/' + activeChatId), { name: currentUser, text: i.value, pfp: localStorage.getItem("pfp"), reacts: {} });
-        i.value = "";
+    window.openDM = (friend) => {
+        isDM = true; activeChatId = [currentUser, friend].sort().join("_");
+        document.getElementById("chatTitle").innerText = friend;
+        startChat('dms/' + activeChatId);
     };
+
+    function startChat(path) {
+        document.getElementById("chatBox").innerHTML = "";
+        setTab('chat');
+        onChildAdded(ref(db, path), (s) => renderMsg(s.val(), s.key, path));
+    }
 
     function renderMsg(data, key, path) {
         const box = document.getElementById("chatBox");
         const isMe = data.name === currentUser;
         const div = document.createElement("div");
         div.className = `msg ${isMe ? 'me' : ''}`;
-        
-        let body = data.text ? `<div>${data.text}</div>` : `<img src="${data.media}" style="max-width:100%; border-radius:12px;">`;
-        
+        let body = data.text ? `<div>${parseLinks(data.text)}</div>` : `<img src="${data.media}" style="max-width:100%; border-radius:12px; margin-top:5px">`;
         div.innerHTML = `
             <img src="${data.pfp}" class="pfp" onclick="viewProfile('${data.name}')">
             <div class="bubble">
@@ -258,35 +259,91 @@
                 ${body}
                 <div class="react-picker">
                     <span onclick="addReact('${path}/${key}', '❤️')">❤️</span>
+                    <span onclick="addReact('${path}/${key}', '🔥')">🔥</span>
                     <span onclick="addReact('${path}/${key}', '😂')">😂</span>
                     <span onclick="addReact('${path}/${key}', '😮')">😮</span>
-                    <span onclick="addReact('${path}/${key}', '🔥')">🔥</span>
                     <span onclick="addReact('${path}/${key}', '👍')">👍</span>
                 </div>
-                <div class="reaction-bar" id="reacts-${key}"></div>
+                <div class="reaction-bar" id="rb-${key}"></div>
             </div>`;
-        
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
-        if(data.name !== currentUser) sendNotify(`New Message from ${data.name}`, data.text || "Sent a photo");
+        if(data.name !== currentUser) notify(`New Msg: ${data.name}`, data.text || "Shared an image");
 
-        // Sync Reactions
         onValue(ref(db, path + '/' + key + '/reacts'), (snap) => {
-            const bar = document.getElementById(`reacts-${key}`);
-            if(!bar) return; bar.innerHTML = "";
-            const val = snap.val();
-            for(let r in val) {
-                bar.innerHTML += `<span class="react-btn">${r} ${val[r]}</span>`;
-            }
+            const bar = document.getElementById(`rb-${key}`); if(!bar) return;
+            bar.innerHTML = ""; const v = snap.val();
+            for(let r in v) bar.innerHTML += `<span class="react-btn">${r} ${v[r]}</span>`;
         });
     }
 
-    window.addReact = (path, emoji) => {
-        const rRef = ref(db, path + '/reacts/' + emoji);
-        update(ref(db, path + '/reacts'), { [emoji]: increment(1) });
+    window.addReact = (path, emoji) => update(ref(db, path + '/reacts'), { [emoji]: increment(1) });
+
+    window.sendText = () => {
+        const i = document.getElementById("msgInp"); if(!i.value) return;
+        const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
+        push(ref(db, path), { name: currentUser, text: i.value, pfp: localStorage.getItem("pfp") });
+        i.value = "";
     };
 
-    // --- UI/Social Logic (Simplified from v3) ---
+    window.sendMedia = (input) => {
+        const r = new FileReader(); r.onload = (e) => {
+            const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
+            push(ref(db, path), { name: currentUser, media: e.target.result, pfp: localStorage.getItem("pfp") });
+        }; r.readAsDataURL(input.files[0]);
+    };
+
+    // --- Admin & Social ---
+    function syncAll() {
+        onValue(ref(db, 'users'), (snap) => {
+            const list = document.getElementById("allUsers"); list.innerHTML = "";
+            const isOwen = currentUser.toLowerCase() === "owen";
+            snap.forEach(c => {
+                const name = c.key; if(name === currentUser) { 
+                    document.getElementById("myPFP").src = c.val().pfp; 
+                    document.getElementById("bioInp").value = c.val().bio || "";
+                    document.getElementById("bannerInp").value = c.val().banner || "#10b981";
+                    localStorage.setItem("pfp", c.val().pfp); return; 
+                }
+                const div = document.createElement("div");
+                div.style = "display:flex; justify-content:space-between; padding:12px; background:var(--panel); border-radius:15px; margin-bottom:10px;";
+                div.innerHTML = `<b onclick="viewProfile('${name}')" style="cursor:pointer">${name}</b>`;
+                const btn = document.createElement("button"); btn.innerText = "Add Friend"; btn.style = "width:auto; padding:5px 12px; font-size:12px;";
+                btn.onclick = () => set(ref(db, `requests/${name}/${currentUser}`), true);
+                div.appendChild(btn);
+                if(isOwen) {
+                    const dbnt = document.createElement("button"); dbnt.innerText = "Del"; dbnt.style="width:auto; padding:5px; background:red; margin-left:5px;";
+                    dbnt.onclick = () => remove(ref(db, 'users/' + name)); div.appendChild(dbnt);
+                }
+                list.appendChild(div);
+            });
+        });
+
+        onValue(ref(db, 'friends/' + currentUser), (snap) => {
+            const list = document.getElementById("friendList"); list.innerHTML = "";
+            snap.forEach(c => {
+                const f = c.key;
+                const d = document.createElement("div"); d.style = "padding:15px; background:var(--panel); border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between;";
+                d.innerHTML = `<b onclick="openDM('${f}')" style="flex:1; cursor:pointer">${f}</b> <span onclick="removeFriend('${f}')" style="color:red; cursor:pointer">✕</span>`;
+                list.appendChild(d);
+            });
+        });
+
+        onValue(ref(db, 'requests/' + currentUser), (snap) => {
+            const div = document.getElementById("pendingRequests"); div.innerHTML = "";
+            snap.forEach(c => {
+                const s = c.key;
+                const card = document.createElement("div"); card.style="background:var(--accent); padding:12px; border-radius:15px; margin-bottom:15px;";
+                card.innerHTML = `Request from ${s} <button onclick="acceptFriend('${s}')" style="background:white; color:var(--accent); margin-top:8px; width:100%">Accept</button>`;
+                div.appendChild(card);
+            });
+        });
+    }
+
+    window.removeFriend = (n) => { if(confirm(`Remove ${n}?`)) { remove(ref(db, `friends/${currentUser}/${n}`)); remove(ref(db, `friends/${n}/${currentUser}`)); }};
+    window.acceptFriend = (s) => { set(ref(db, `friends/${currentUser}/${s}`), true); set(ref(db, `friends/${s}/${currentUser}`), true); remove(ref(db, `requests/${currentUser}/${s}`)); };
+
+    // --- UI Helpers ---
     window.setTab = (id) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -294,20 +351,13 @@
         if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
     };
 
+    window.updateTheme = (v) => { document.documentElement.setAttribute('data-theme', v); localStorage.setItem("theme", v); };
     window.logout = () => { localStorage.clear(); location.reload(); };
+    window.deleteMyAccount = () => { if(confirm("Permanently delete account?")) { remove(ref(db, 'users/' + currentUser)); logout(); }};
 
     if(currentUser) {
         document.getElementById("loginScreen").style.display = "none";
-        // Load settings data
-        get(ref(db, 'users/' + currentUser)).then(s => {
-            const d = s.val();
-            document.getElementById('bioInp').value = d.bio || "";
-            document.getElementById('bannerInp').value = d.banner || "#10b981";
-            document.getElementById('myPFP').src = d.pfp;
-            localStorage.setItem("pfp", d.pfp);
-        });
-        // Initial setup for Rooms (v3 logic)
-        onValue(ref(db, 'users'), (snap) => { /* Sync Community list */ });
+        syncAll(); updateTheme(localStorage.getItem("theme") || "dark");
     }
 </script>
 </body>
