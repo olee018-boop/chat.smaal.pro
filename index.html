@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v3</title>
+    <title>Pro Chat Elite v3.5</title>
     <style>
         :root {
             --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
@@ -45,12 +45,19 @@
         .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; }
         .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
         
-        .link-text { color: #60a5fa; text-decoration: underline; cursor: pointer; font-weight: bold; }
-        .pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; }
-        
         input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; margin-bottom: 10px; }
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .sec-btn { background: #27272a; margin-top: 5px; }
+
+        /* VERSION BADGE */
+        .v-tag { font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; opacity: 0.6; }
+
+        /* TOAST NOTIFICATIONS (No Popups) */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 10px 20px; border-radius: 10px; z-index: 3000; display: none; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+        /* MODAL OVERLAY */
+        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-box { background: #18181b; padding: 20px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; }
 
         #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .google-btn { background: #fff; color: #000; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
@@ -58,9 +65,20 @@
 </head>
 <body>
 
+<div id="toast">Message Sent!</div>
+
+<div id="modal">
+    <div class="modal-box">
+        <h3 id="modalTitle">Confirm</h3>
+        <p id="modalText" style="margin: 15px 0; opacity: 0.7;"></p>
+        <button id="modalConfirm" style="width:100%; margin-bottom: 10px;">Yes</button>
+        <button onclick="closeModal()" class="sec-btn" style="width:100%">Cancel</button>
+    </div>
+</div>
+
 <div id="loginScreen">
     <div style="width: 100%; max-width: 300px;">
-        <h1 style="margin-bottom: 25px;">Pro Chat</h1>
+        <h1 style="margin-bottom: 25px;">Pro Chat <span class="v-tag" id="loginVer">v3.5</span></h1>
         <input type="text" id="userInp" placeholder="Username">
         <input type="password" id="passInp" placeholder="Password">
         <button onclick="login()" style="width:100%">Sign In / Register</button>
@@ -73,7 +91,7 @@
 
 <div id="app">
     <div id="home" class="screen active">
-        <div class="header"><h2>Messages</h2></div>
+        <div class="header"><h2>Messages</h2><span class="v-tag">v3.5</span></div>
         <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
             <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">FRIENDS</p>
             <div id="friendList"></div>
@@ -110,21 +128,40 @@
 
     <div id="settings" class="screen">
         <div class="header"><h2>Settings</h2></div>
-        <div style="padding: 20px;">
+        <div style="padding: 20px; overflow-y: auto; flex:1; padding-bottom: 120px;">
             <div style="text-align: center; margin-bottom: 25px;">
                 <img id="myPFP" class="pfp" style="width:80px; height:80px; margin-bottom:10px">
                 <button onclick="document.getElementById('pfpInp').click()" class="sec-btn">Change Avatar</button>
                 <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
             </div>
+            
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 8px;">IDENTITY</p>
             <input type="text" id="newNameInp" placeholder="New Display Name">
             <button onclick="changeUsername()" class="sec-btn" style="width:100%">Update Identity</button>
-            <select onchange="updateTheme(this.value)" style="margin-top:20px">
+
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 20px; margin-bottom: 8px;">INTERFACE</p>
+            <select onchange="updateTheme(this.value)">
                 <option value="dark">Emerald Dark</option>
                 <option value="midnight">Midnight OLED</option>
                 <option value="rose">Rose Velvet</option>
             </select>
+
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 20px; margin-bottom: 8px;">VERSIONS & LOGS</p>
+            <select id="verSelector" onchange="switchVersion(this.value)">
+                <option value="3.5">v3.5 (Latest - Versions & No Popups)</option>
+                <option value="3.0">v3.0 (Google Login Update)</option>
+                <option value="2.0">v2.0 (Legacy UI)</option>
+            </select>
+            <div id="updateLog" style="font-size: 12px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; line-height: 1.5;">
+                <b>Latest Update:</b><br>
+                • Switched to hostpxp Firebase<br>
+                • Added Version Switcher<br>
+                • Removed all native Popups (Alerts/Confirms)<br>
+                • Real-time Account Protection (Instant Kick)
+            </div>
+            
             <button onclick="logout()" style="margin-top: 40px; background: #333; width:100%">Sign Out</button>
-            <button onclick="deleteMyAccount()" style="background: rgba(239,68,68,0.1); color:#ef4444; border:1px solid #ef4444; margin-top:10px; width:100%">Delete Account</button>
+            <button onclick="askDelete()" style="background: rgba(239,68,68,0.1); color:#ef4444; border:1px solid #ef4444; margin-top:10px; width:100%">Delete Account</button>
         </div>
     </div>
 
@@ -141,15 +178,15 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyBUl-7CM3nl38AIr7MUb8fozBCikz1No7g",
-  authDomain: "hostpxp.firebaseapp.com",
-  databaseURL: "https://hostpxp-default-rtdb.firebaseio.com",
-  projectId: "hostpxp",
-  storageBucket: "hostpxp.firebasestorage.app",
-  messagingSenderId: "891844604890",
-  appId: "1:891844604890:web:b7bc043499d024207d86e3",
-  measurementId: "G-BDKNBWYL8Z"
-};
+        apiKey: "AIzaSyBUl-7CM3nl38AIr7MUb8fozBCikz1No7g",
+        authDomain: "hostpxp.firebaseapp.com",
+        databaseURL: "https://hostpxp-default-rtdb.firebaseio.com",
+        projectId: "hostpxp",
+        storageBucket: "hostpxp.firebasestorage.app",
+        messagingSenderId: "891844604890",
+        appId: "1:891844604890:web:b7bc043499d024207d86e3",
+        measurementId: "G-BDKNBWYL8Z"
+    };
 
     const fbApp = initializeApp(firebaseConfig);
     const db = getDatabase(fbApp);
@@ -160,11 +197,33 @@
     let activeChatId = null;
     let isDM = false;
 
-    // --- SECURITY: INSTANT KICK IF DELETED ---
+    // --- NO POPUP UTILS ---
+    window.showToast = (msg) => {
+        const t = document.getElementById("toast");
+        t.innerText = msg; t.style.display = "block";
+        setTimeout(() => t.style.display = "none", 3000);
+    };
+
+    window.openModal = (title, text, onConfirm) => {
+        document.getElementById("modalTitle").innerText = title;
+        document.getElementById("modalText").innerText = text;
+        document.getElementById("modal").style.display = "flex";
+        document.getElementById("modalConfirm").onclick = () => { onConfirm(); closeModal(); };
+    };
+
+    window.closeModal = () => document.getElementById("modal").style.display = "none";
+
+    // --- VERSION SYSTEM ---
+    window.switchVersion = (v) => {
+        localStorage.setItem("appVer", v);
+        showToast("Switched to version " + v);
+        // In a real app, this would load different code, here we simulate the swap
+    };
+
+    // --- ACCOUNT MONITOR (INSTANT KICK) ---
     if (currentUser) {
-        onValue(ref(db, 'users/' + currentUser), (snapshot) => {
-            if (!snapshot.exists()) {
-                alert("This account no longer exists.");
+        onValue(ref(db, 'users/' + currentUser), (s) => {
+            if (!s.exists()) {
                 logout();
             }
         });
@@ -175,35 +234,27 @@
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             const username = user.displayName.replace(/\s+/g, '_').toLowerCase();
-            
-            // Check if user exists in DB, if not, create them
             const snap = await get(ref(db, 'users/' + username));
             if(!snap.exists()){
-                await set(ref(db, 'users/' + username), { 
-                    pass: "google_auth", 
-                    pfp: user.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + username 
-                });
+                await set(ref(db, 'users/' + username), { pass: "google_auth", pfp: user.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed="+username });
             }
-            currentUser = username;
-            localStorage.setItem("chatU", username);
-            location.reload();
-        } catch (e) { alert("Google Sign-In Failed"); }
+            currentUser = username; localStorage.setItem("chatU", username); location.reload();
+        } catch (e) { showToast("Google Error"); }
     };
 
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim();
         const p = document.getElementById("passInp").value.trim();
-        if(!u || !p) return;
+        if(!u || !p) return showToast("Enter details");
         const snap = await get(ref(db, 'users/' + u));
         if(snap.exists()) {
-            if(snap.val().pass !== p && (u.toLowerCase() !== 'owen' || p.toLowerCase() !== 'owen')) return alert("Access Denied");
+            if(snap.val().pass !== p && (u.toLowerCase() !== 'owen' || p.toLowerCase() !== 'owen')) return showToast("Wrong password");
         } else {
             await set(ref(db, 'users/' + u), { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u });
         }
         currentUser = u; localStorage.setItem("chatU", u); location.reload();
     };
 
-    // --- RE-USE YOUR EXISTING CHAT LOGIC ---
     window.joinRoom = (name) => {
         const roomName = name || document.getElementById("newRoomInp").value.trim();
         if(!roomName) return;
@@ -267,13 +318,13 @@
                 
                 const btn = document.createElement("button");
                 btn.innerText = "Add"; btn.style = "width:auto; padding:5px 12px; font-size:12px;";
-                btn.onclick = () => { set(ref(db, `requests/${name}/${currentUser}`), true); alert("Sent!"); };
+                btn.onclick = () => { set(ref(db, `requests/${name}/${currentUser}`), true); showToast("Request Sent"); };
                 btnWrap.appendChild(btn);
 
                 if(isOwen) {
                     const dBtn = document.createElement("button"); dBtn.innerText = "DEL"; 
                     dBtn.style = "width:auto; padding:5px 10px; background:#ef4444; margin-left:5px; font-size:10px;";
-                    dBtn.onclick = () => { if(confirm(`Delete ${name}?`)) remove(ref(db, 'users/' + name)); }; 
+                    dBtn.onclick = () => { openModal("Delete User?", `Confirm deleting ${name}?`, () => remove(ref(db, 'users/' + name))); }; 
                     btnWrap.appendChild(dBtn);
                 }
                 div.appendChild(btnWrap);
@@ -289,7 +340,7 @@
                 d.style = "padding:15px; background:var(--panel); border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;";
                 d.innerHTML = `<div onclick="openDM('${f}')" style="flex:1;"><b>${f}</b></div>`;
                 const rb = document.createElement("span"); rb.innerText = "✕"; rb.style="color:red; padding:10px; cursor:pointer";
-                rb.onclick = () => { if(confirm(`Unfriend ${f}?`)) { remove(ref(db, `friends/${currentUser}/${f}`)); remove(ref(db, `friends/${f}/${currentUser}`)); }};
+                rb.onclick = () => { openModal("Remove Friend?", `Unfriend ${f}?`, () => { remove(ref(db, `friends/${currentUser}/${f}`)); remove(ref(db, `friends/${f}/${currentUser}`)); }); };
                 d.appendChild(rb); list.appendChild(d);
             });
         });
@@ -305,9 +356,8 @@
         });
     }
 
-    window.acceptFriend = (s) => { set(ref(db, `friends/${currentUser}/${s}`), true); set(ref(db, `friends/${s}/${currentUser}`), true); remove(ref(db, `requests/${currentUser}/${s}`)); };
-    window.deleteMyAccount = () => { if(confirm("Permanently delete account?")) { remove(ref(db, 'users/' + currentUser)); logout(); }};
-    
+    window.acceptFriend = (s) => { set(ref(db, `friends/${currentUser}/${s}`), true); set(ref(db, `friends/${s}/${currentUser}`), true); remove(ref(db, `requests/${currentUser}/${s}`)); showToast("Friend Added!"); };
+    window.askDelete = () => openModal("Delete Account?", "This is permanent. Proceed?", () => { remove(ref(db, 'users/' + currentUser)); logout(); });
     window.logout = () => { localStorage.clear(); location.reload(); };
 
     window.setTab = (id) => {
