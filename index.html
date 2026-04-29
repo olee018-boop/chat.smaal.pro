@@ -141,11 +141,15 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyBhVAzRtPGuaFkhdT0wgvoLSEME7hYxOwY",
-        authDomain: "mychatapp-10a99.firebaseapp.com",
-        projectId: "mychatapp-10a99",
-        databaseURL: "https://mychatapp-10a99-default-rtdb.firebaseio.com/"
-    };
+  apiKey: "AIzaSyBUl-7CM3nl38AIr7MUb8fozBCikz1No7g",
+  authDomain: "hostpxp.firebaseapp.com",
+  databaseURL: "https://hostpxp-default-rtdb.firebaseio.com",
+  projectId: "hostpxp",
+  storageBucket: "hostpxp.firebasestorage.app",
+  messagingSenderId: "891844604890",
+  appId: "1:891844604890:web:b7bc043499d024207d86e3",
+  measurementId: "G-BDKNBWYL8Z"
+};
 
     const fbApp = initializeApp(firebaseConfig);
     const db = getDatabase(fbApp);
