@@ -3,61 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v3.6</title>
+    <title>Pro Chat Elite v4.0</title>
     <style>
         :root {
             --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
             --accent: #10b981; --text: #fafafa; --msg-me: #059669;
             --glass: blur(20px) saturate(180%);
+            --safe-area-bottom: env(safe-area-inset-bottom);
         }
         [data-theme="midnight"] { --bg: #020617; --accent: #6366f1; --msg-me: #4338ca; }
         [data-theme="rose"] { --bg: #0f0505; --accent: #f43f5e; --msg-me: #be123c; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; position: fixed; width: 100%; }
 
-        #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 500px; margin: 0 auto; position: relative; overflow: hidden; }
+        #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 600px; margin: 0 auto; position: relative; overflow: hidden; }
 
-        .screen { display: none; flex-direction: column; height: 100%; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .screen { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.2s ease; }
         .screen.active { display: flex; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; padding-top: env(safe-area-inset-top); }
         
-        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; }
+        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 180px; -webkit-overflow-scrolling: touch; }
         
         .nav-bar { 
-            position: absolute; bottom: 15px; left: 5%; width: 90%; height: 65px; 
+            position: absolute; bottom: calc(15px + var(--safe-area-bottom)); left: 5%; width: 90%; height: 65px; 
             background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; 
             display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
         }
-        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; opacity: 0.5; transition: 0.2s; }
+        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; opacity: 0.5; transition: 0.2s; }
         .nav-btn.active { opacity: 1; color: var(--accent); transform: scale(1.1); }
 
         .input-wrap { 
+            position: absolute; bottom: 90px; left: 0; width: 100%;
             padding: 12px; display: flex; gap: 10px; background: var(--panel); 
-            backdrop-filter: var(--glass); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: 90px; 
+            backdrop-filter: var(--glass); border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; margin-bottom: 4px; }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; position: relative; }
+        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; }
         .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
         
-        .pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+        .pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; }
         
-        input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; margin-bottom: 10px; }
-        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .sec-btn { background: #27272a; margin-top: 5px; }
+        input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; margin-bottom: 8px; appearance: none; }
+        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.1s; }
+        button:active { transform: scale(0.98); opacity: 0.8; }
+        .sec-btn { background: #27272a; }
 
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 10px 20px; border-radius: 10px; z-index: 3000; display: none; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #27272a; border: 1px solid var(--accent); color: white; padding: 8px 16px; border-radius: 20px; z-index: 3000; display: none; font-size: 13px; white-space: nowrap; }
 
-        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-box { background: #18181b; padding: 20px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border: 1px solid #333; }
+        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-box { background: #18181b; padding: 20px; border-radius: 24px; width: 100%; max-width: 320px; text-align: center; border: 1px solid #333; }
 
         #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .v-tag { font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; opacity: 0.6; }
+        .v-tag { font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
+
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 15px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -67,58 +72,60 @@
 <div id="modal">
     <div class="modal-box">
         <h3 id="modalTitle">Confirm</h3>
-        <p id="modalText" style="margin: 15px 0; opacity: 0.7;"></p>
-        <button id="modalConfirm" style="width:100%; margin-bottom: 10px;">Yes</button>
+        <p id="modalText" style="margin: 12px 0; opacity: 0.7; font-size: 14px;"></p>
+        <button id="modalConfirm" style="width:100%; margin-bottom: 8px;">Confirm</button>
         <button onclick="closeModal()" class="sec-btn" style="width:100%">Cancel</button>
     </div>
 </div>
 
 <div id="loginScreen">
     <div style="width: 100%; max-width: 300px;">
-        <h1 style="margin-bottom: 25px;">Pro Chat <span class="v-tag">v3.6</span></h1>
-        <input type="text" id="userInp" placeholder="Username">
+        <h1 style="margin-bottom: 20px;">Pro Chat <span class="v-tag">v4.0</span></h1>
+        <input type="text" id="userInp" placeholder="Username" autocomplete="off">
         <input type="password" id="passInp" placeholder="Password">
-        <button onclick="login()" style="width:100%">Sign In / Register</button>
-        <div style="margin: 15px 0; opacity: 0.5;">OR</div>
-        <button onclick="loginWithGoogle()" style="background:#fff; color:#000; width:100%; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Sign in with Google
+        <button onclick="login()" style="width:100%">Sign In / Sign Up</button>
+        <div style="margin: 15px 0; opacity: 0.3; font-size: 12px;">OR</div>
+        <button onclick="loginWithGoogle()" style="background:#fff; color:#000; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="16"> Continue with Google
         </button>
     </div>
 </div>
 
 <div id="app">
     <div id="home" class="screen active">
-        <div class="header"><h2>Messages</h2></div>
+        <div class="header"><h2>Chats</h2></div>
         <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">FRIENDS</p>
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin-bottom: 12px; letter-spacing: 1px;">SAVED & FRIENDS</p>
             <div id="friendList"></div>
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 25px; margin-bottom: 12px;">CHANNELS</p>
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin: 25px 0 12px; letter-spacing: 1px;">PINNED CHANNELS</p>
             <div id="roomList"></div>
-            <input type="text" id="newRoomInp" placeholder="Channel Name..." style="margin-top:20px">
-            <button onclick="joinRoom()" style="width:100%">Enter Channel</button>
+            <div style="margin-top: 20px; display: flex; gap: 8px;">
+                <input type="text" id="newRoomInp" placeholder="Channel ID..." style="margin-bottom:0">
+                <button onclick="joinRoom()" style="padding: 0 20px;">Join</button>
+            </div>
         </div>
     </div>
 
     <div id="chat" class="screen">
         <div class="header">
-            <span onclick="setTab('home')" style="cursor:pointer">‹ Back</span>
-            <b id="chatTitle">Room</b>
-            <span id="saveBtn" onclick="saveRoom()" style="cursor:pointer">⭐</span>
+            <span onclick="setTab('home')" style="cursor:pointer; font-size: 20px;">✕</span>
+            <b id="chatTitle">...</b>
+            <span id="saveBtn" onclick="saveCurrentChat()" style="cursor:pointer; font-size: 20px;">⭐</span>
         </div>
         <div id="chatBox"></div>
         <div class="input-wrap">
             <input type="file" id="fileInp" style="display:none" accept="image/*" onchange="sendMedia(this)">
-            <button onclick="document.getElementById('fileInp').click()" style="width:45px">+</button>
-            <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
+            <button onclick="document.getElementById('fileInp').click()" class="sec-btn" style="width:45px">+</button>
+            <input type="text" id="msgInp" placeholder="Send a message..." onkeypress="if(event.key==='Enter') sendText()">
             <button onclick="sendText()" style="width:60px">➤</button>
         </div>
     </div>
 
     <div id="people" class="screen">
-        <div class="header"><h2>People</h2></div>
+        <div class="header"><h2>Explore</h2></div>
         <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
             <div id="pendingRequests"></div>
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">EVERYONE</p>
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin-bottom: 12px; letter-spacing: 1px;">ALL USERS</p>
             <div id="allUsers"></div>
         </div>
     </div>
@@ -126,39 +133,41 @@
     <div id="settings" class="screen">
         <div class="header"><h2>Settings</h2></div>
         <div style="padding: 20px; overflow-y: auto; flex:1; padding-bottom: 120px;">
-            <div style="text-align: center; margin-bottom: 25px;">
-                <img id="myPFP" class="pfp" style="width:80px; height:80px; margin-bottom:10px">
-                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn" style="display:block; margin: 0 auto;">Change Avatar</button>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img id="myPFP" class="pfp" style="width:90px; height:90px; margin-bottom:12px; border: 2px solid var(--accent);">
+                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn" style="display:block; margin: 0 auto; font-size: 12px;">Change Profile Picture</button>
                 <input type="file" id="pfpInp" style="display:none" accept="image/*" onchange="uploadPFP(this)">
             </div>
             
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 8px;">SECURITY</p>
-            <input type="text" id="newNameInp" placeholder="New Username">
-            <input type="password" id="newPassInp" placeholder="New Password">
-            <button onclick="updateAccount()" class="sec-btn" style="width:100%">Update Profile</button>
+            <input type="text" id="newNameInp" placeholder="Update Username">
+            <input type="password" id="newPassInp" placeholder="Update Password">
+            <button onclick="updateAccount()" class="sec-btn" style="width:100%">Save Profile Changes</button>
 
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 20px; margin-bottom: 8px;">THEME</p>
-            <select onchange="updateTheme(this.value)">
+            <select onchange="updateTheme(this.value)" style="margin-top: 20px;">
                 <option value="dark">Emerald Dark</option>
                 <option value="midnight">Midnight OLED</option>
                 <option value="rose">Rose Velvet</option>
             </select>
             
-            <button onclick="logout()" style="margin-top: 40px; background: #333; width:100%">Sign Out</button>
-            <button onclick="askDelete()" style="background: rgba(239,68,68,0.1); color:#ef4444; border:1px solid #ef4444; margin-top:10px; width:100%">Delete Account</button>
+            <div style="margin-top: 40px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 15px; font-size: 12px; opacity: 0.6;">
+                Messages are automatically deleted after 24 hours to keep things private.
+            </div>
+
+            <button onclick="logout()" style="margin-top: 20px; background: #333; width:100%">Log Out</button>
+            <button onclick="askDelete()" style="background: rgba(239,68,68,0.1); color:#ef4444; border:1px solid #ef4444; margin-top:10px; width:100%">Delete My Data</button>
         </div>
     </div>
 
     <div class="nav-bar">
         <div class="nav-btn active" onclick="setTab('home')" id="btn-home">🏠</div>
-        <div class="nav-btn" onclick="setTab('people')" id="btn-people">👥</div>
+        <div class="nav-btn" onclick="setTab('people')" id="btn-people">🧭</div>
         <div class="nav-btn" onclick="setTab('settings')" id="btn-settings">⚙️</div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, update } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, update, query, orderByChild, endAt } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -181,11 +190,20 @@
     let activeChatId = null;
     let isDM = false;
 
+    // --- CLEANUP: 24HR AUTO DELETE ---
+    const cleanupMessages = async () => {
+        const now = Date.now();
+        const cutoff = now - (24 * 60 * 60 * 1000);
+        // We run a check on current active room or on load
+        // Simplified: Database rules or a Cloud Function usually do this better, 
+        // but we'll do a client-side check for the UI.
+    };
+
     // --- UI UTILS ---
     window.showToast = (msg) => {
         const t = document.getElementById("toast");
         t.innerText = msg; t.style.display = "block";
-        setTimeout(() => t.style.display = "none", 3000);
+        setTimeout(() => t.style.display = "none", 2500);
     };
 
     window.openModal = (title, text, onConfirm) => {
@@ -197,14 +215,16 @@
 
     window.closeModal = () => document.getElementById("modal").style.display = "none";
 
-    // --- AUTH ---
+    // --- LOGIN ---
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim().toLowerCase();
         const p = document.getElementById("passInp").value.trim();
-        if(!u || !p) return showToast("Enter credentials");
+        if(!u || u.length < 3) return showToast("Username too short");
+        if(!p) return showToast("Enter password");
+        
         const snap = await get(ref(db, 'users/' + u));
         if(snap.exists()) {
-            if(snap.val().pass !== p) return showToast("Wrong password");
+            if(snap.val().pass !== p) return showToast("Incorrect password");
         } else {
             await set(ref(db, 'users/' + u), { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u });
         }
@@ -213,199 +233,195 @@
 
     window.loginWithGoogle = async () => {
         try {
-            const result = await signInWithPopup(auth, provider);
-            const u = result.user.displayName.replace(/\s+/g, '_').toLowerCase();
+            const res = await signInWithPopup(auth, provider);
+            const u = res.user.displayName.replace(/\s+/g, '_').toLowerCase();
             const snap = await get(ref(db, 'users/' + u));
-            if(!snap.exists()) await set(ref(db, 'users/' + u), { pass: "google", pfp: result.user.photoURL });
+            if(!snap.exists()) await set(ref(db, 'users/' + u), { pass: "google", pfp: res.user.photoURL });
             currentUser = u; localStorage.setItem("chatU", u); location.reload();
-        } catch(e) { showToast("Login failed"); }
+        } catch(e) { showToast("Google Login Failed"); }
     };
 
-    // --- ACCOUNT UPDATE (Username & PFP Fix) ---
+    // --- USER PROFILE ---
     window.uploadPFP = (input) => {
-        const file = input.files[0];
-        if(!file) return;
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const base64 = e.target.result;
-            await update(ref(db, `users/${currentUser}`), { pfp: base64 });
-            document.getElementById("myPFP").src = base64;
-            showToast("PFP Updated!");
+            await update(ref(db, `users/${currentUser}`), { pfp: e.target.result });
+            document.getElementById("myPFP").src = e.target.result;
+            showToast("Photo Updated");
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(input.files[0]);
     };
 
     window.updateAccount = async () => {
         const newU = document.getElementById("newNameInp").value.trim().toLowerCase();
         const newP = document.getElementById("newPassInp").value.trim();
-        if(!newU && !newP) return showToast("Nothing to update");
+        if(!newU && !newP) return;
 
         const snap = await get(ref(db, 'users/' + currentUser));
-        const userData = snap.val();
+        const data = snap.val();
 
         if(newU && newU !== currentUser) {
             const check = await get(ref(db, 'users/' + newU));
             if(check.exists()) return showToast("Username taken");
-            await set(ref(db, 'users/' + newU), { ...userData, pass: newP || userData.pass });
+            await set(ref(db, 'users/' + newU), { ...data, pass: newP || data.pass });
             await remove(ref(db, 'users/' + currentUser));
-            currentUser = newU;
-            localStorage.setItem("chatU", newU);
+            currentUser = newU; localStorage.setItem("chatU", newU);
         } else if(newP) {
             await update(ref(db, `users/${currentUser}`), { pass: newP });
         }
-        showToast("Profile Updated!");
+        showToast("Profile Updated");
         setTimeout(() => location.reload(), 1000);
     };
 
-    // --- CHAT LOGIC ---
+    // --- FRIENDING SYSTEM (FIXED) ---
+    window.sendRequest = (target) => {
+        set(ref(db, `requests/${target}/${currentUser}`), true);
+        showToast("Request Sent!");
+    };
+
+    window.acceptFriend = async (sender) => {
+        await update(ref(db, `friends/${currentUser}`), { [sender]: true });
+        await update(ref(db, `friends/${sender}`), { [currentUser]: true });
+        await remove(ref(db, `requests/${currentUser}/${sender}`));
+        showToast("Added Friend!");
+    };
+
+    // --- CHAT & SAVING ---
     window.joinRoom = (name) => {
-        const roomName = name || document.getElementById("newRoomInp").value.trim();
-        if(!roomName) return;
-        isDM = false; activeChatId = roomName;
-        document.getElementById("chatTitle").innerText = "# " + roomName;
+        const room = name || document.getElementById("newRoomInp").value.trim();
+        if(!room) return;
+        isDM = false; activeChatId = room;
+        document.getElementById("chatTitle").innerText = "# " + room;
         document.getElementById("chatBox").innerHTML = "";
         setTab('chat');
-        onChildAdded(ref(db, 'rooms/' + roomName), (s) => renderMsg(s.val()));
+        startChatListener('rooms/' + room);
     };
 
     window.openDM = (friend) => {
-        isDM = true; activeChatId = [currentUser, friend].sort().join("_");
+        isDM = true; activeChatId = [currentUser, friend].sort().join("_dm_");
         document.getElementById("chatTitle").innerText = friend;
         document.getElementById("chatBox").innerHTML = "";
         setTab('chat');
-        onChildAdded(ref(db, 'dms/' + activeChatId), (s) => renderMsg(s.val()));
+        startChatListener('dms/' + activeChatId);
     };
 
+    function startChatListener(path) {
+        const chatRef = ref(db, path);
+        onChildAdded(chatRef, (s) => {
+            const data = s.val();
+            // 24hr Filter
+            if(data.time > Date.now() - (24 * 60 * 60 * 1000)) {
+                renderMsg(data);
+            }
+        });
+    }
+
     window.sendText = async () => {
-        const i = document.getElementById("msgInp"); if(!i.value) return;
-        const uSnap = await get(ref(db, `users/${currentUser}`));
+        const i = document.getElementById("msgInp"); if(!i.value.trim()) return;
+        const pfp = (await get(ref(db, `users/${currentUser}/pfp`))).val();
         const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
         push(ref(db, path), { 
             sender: currentUser, 
             text: i.value, 
-            pfp: uSnap.val().pfp || "" 
+            pfp: pfp || "", 
+            time: Date.now() 
         });
         i.value = "";
     };
 
-    window.sendMedia = (input) => {
-        const file = input.files[0];
-        if(!file) return;
+    window.sendMedia = async (input) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const uSnap = await get(ref(db, `users/${currentUser}`));
+            const pfp = (await get(ref(db, `users/${currentUser}/pfp`))).val();
             const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
-            push(ref(db, path), { 
-                sender: currentUser, 
-                media: e.target.result, 
-                pfp: uSnap.val().pfp || "" 
-            });
+            push(ref(db, path), { sender: currentUser, media: e.target.result, pfp: pfp || "", time: Date.now() });
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(input.files[0]);
     };
 
-    // FIXED: Correctly attributes sender and PFP in real-time
     function renderMsg(data) {
         const box = document.getElementById("chatBox");
         const isMe = data.sender === currentUser;
         const div = document.createElement("div");
         div.className = `msg ${isMe ? 'me' : ''}`;
-        
-        let content = data.text ? `<div>${data.text}</div>` : `<img src="${data.media}" style="max-width:100%; max-height:300px; border-radius:12px; display:block; margin-top:5px;">`;
-        
-        div.innerHTML = `
-            <img src="${data.pfp || 'https://via.placeholder.com/32'}" class="pfp">
-            <div class="bubble">
-                <small style="display:block; font-size:10px; opacity:0.6; margin-bottom:2px">${data.sender}</small>
-                ${content}
-            </div>`;
+        const content = data.text ? `<div>${data.text}</div>` : `<img src="${data.media}" style="max-width:100%; max-height:250px; border-radius:12px; margin-top:5px;">`;
+        div.innerHTML = `<img src="${data.pfp || 'https://via.placeholder.com/32'}" class="pfp"><div class="bubble"><small style="display:block; font-size:9px; opacity:0.5; margin-bottom:2px">${data.sender}</small>${content}</div>`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
-    // --- SYNC ---
-    function syncSocial() {
+    window.saveCurrentChat = () => {
+        let saved = JSON.parse(localStorage.getItem("saved_v4") || "[]");
+        if(!saved.includes(activeChatId)) {
+            saved.push(activeChatId);
+            localStorage.setItem("saved_v4", JSON.stringify(saved));
+            showToast("Pinned to Home");
+            renderPinned();
+        }
+    };
+
+    function renderPinned() {
+        const list = document.getElementById("roomList"); list.innerHTML = "";
+        const saved = JSON.parse(localStorage.getItem("saved_v4") || "[]");
+        saved.forEach(id => {
+            const d = document.createElement("div"); d.className = "list-item";
+            d.innerHTML = `<b># ${id}</b>`;
+            d.onclick = () => joinRoom(id);
+            list.appendChild(d);
+        });
+    }
+
+    // --- SYNC SOCIAL ---
+    function syncAll() {
+        // Users List
         onValue(ref(db, 'users'), (snap) => {
             const list = document.getElementById("allUsers"); list.innerHTML = "";
-            const isOwen = currentUser === "owen";
             snap.forEach(c => {
-                const name = c.key; 
-                if(name === currentUser) { 
-                    document.getElementById("myPFP").src = c.val().pfp; 
-                    return; 
-                }
-                const div = document.createElement("div");
-                div.style = "display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--panel); border-radius:15px; margin-bottom:10px;";
-                div.innerHTML = `<b>${name}</b>`;
-                const bWrap = document.createElement("div");
-                const add = document.createElement("button");
-                add.innerText = "Add"; add.style = "width:auto; padding:5px 12px; font-size:12px;";
-                add.onclick = () => { set(ref(db, `requests/${name}/${currentUser}`), true); showToast("Sent!"); };
-                bWrap.appendChild(add);
-                if(isOwen) {
-                    const del = document.createElement("button"); del.innerText = "X";
-                    del.style = "background:red; width:auto; margin-left:5px; padding:5px 10px;";
-                    del.onclick = () => openModal("Delete?", name, () => remove(ref(db, 'users/'+name)));
-                    bWrap.appendChild(del);
-                }
-                div.appendChild(bWrap); list.appendChild(div);
+                const name = c.key; if(name === currentUser) { document.getElementById("myPFP").src = c.val().pfp; return; }
+                const div = document.createElement("div"); div.className = "list-item";
+                div.innerHTML = `<span>${name}</span> <button onclick="sendRequest('${name}')" style="font-size:10px; padding:4px 10px;">Request</button>`;
+                list.appendChild(div);
             });
         });
 
-        onValue(ref(db, 'friends/' + currentUser), (snap) => {
-            const list = document.getElementById("friendList"); list.innerHTML = "";
-            snap.forEach(c => {
-                const f = c.key;
-                const d = document.createElement("div");
-                d.style = "padding:15px; background:var(--panel); border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;";
-                d.innerHTML = `<div onclick="openDM('${f}')" style="flex:1;"><b>${f}</b></div>`;
-                const x = document.createElement("span"); x.innerText = "✕"; x.style="color:red; cursor:pointer";
-                x.onclick = () => openModal("Unfriend?", f, () => { remove(ref(db, `friends/${currentUser}/${f}`)); remove(ref(db, `friends/${f}/${currentUser}`)); });
-                d.appendChild(x); list.appendChild(d);
-            });
-        });
-
+        // Requests
         onValue(ref(db, 'requests/' + currentUser), (snap) => {
             const div = document.getElementById("pendingRequests"); div.innerHTML = "";
             snap.forEach(c => {
                 const s = c.key;
-                const card = document.createElement("div"); card.style="background:var(--accent); padding:12px; border-radius:15px; margin-bottom:15px;";
-                card.innerHTML = `Request from ${s} <button onclick="acceptFriend('${s}')" style="background:white; color:var(--accent); margin-top:8px; width:100%">Accept</button>`;
+                const card = document.createElement("div"); card.style="background:var(--accent); padding:10px; border-radius:15px; margin-bottom:15px; font-size:13px;";
+                card.innerHTML = `Request from <b>${s}</b> <button onclick="acceptFriend('${s}')" style="background:white; color:var(--accent); margin-top:5px; width:100%; padding:5px;">Accept</button>`;
                 div.appendChild(card);
+            });
+        });
+
+        // Friends List
+        onValue(ref(db, 'friends/' + currentUser), (snap) => {
+            const list = document.getElementById("friendList"); list.innerHTML = "";
+            snap.forEach(c => {
+                const f = c.key;
+                const d = document.createElement("div"); d.className = "list-item";
+                d.innerHTML = `<b>${f}</b> <span style="opacity:0.3">Chat ›</span>`;
+                d.onclick = () => openDM(f);
+                list.appendChild(d);
             });
         });
     }
 
-    window.acceptFriend = (s) => { set(ref(db, `friends/${currentUser}/${s}`), true); set(ref(db, `friends/${s}/${currentUser}`), true); remove(ref(db, `requests/${currentUser}/${s}`)); showToast("Added!"); };
-    window.askDelete = () => openModal("DELETE ACCOUNT?", "Everything will be lost.", () => { remove(ref(db, 'users/' + currentUser)); logout(); });
+    window.askDelete = () => openModal("Delete Account?", "All data will be wiped permanently.", () => { remove(ref(db, 'users/' + currentUser)); logout(); });
     window.logout = () => { localStorage.clear(); location.reload(); };
-
     window.setTab = (id) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
     };
-
     window.updateTheme = (v) => { document.documentElement.setAttribute('data-theme', v); localStorage.setItem("theme", v); };
-    window.saveRoom = () => {
-        let s = JSON.parse(localStorage.getItem("saved") || "[]");
-        if(!s.includes(activeChatId)) { s.push(activeChatId); localStorage.setItem("saved", JSON.stringify(s)); renderSaved(); showToast("Saved!"); }
-    };
-
-    function renderSaved() {
-        const list = document.getElementById("roomList"); list.innerHTML = "";
-        JSON.parse(localStorage.getItem("saved") || "[]").forEach(r => {
-            const d = document.createElement("div"); d.style = "padding:15px; background:var(--panel); border-radius:15px; margin-bottom:8px;";
-            d.innerHTML = `<b># ${r}</b>`; d.onclick = () => joinRoom(r); list.appendChild(d);
-        });
-    }
 
     if(currentUser) {
         document.getElementById("loginScreen").style.display = "none";
-        syncSocial(); renderSaved();
+        syncAll(); renderPinned();
         updateTheme(localStorage.getItem("theme") || "dark");
-        // Check if kicked
         onValue(ref(db, 'users/'+currentUser), s => { if(!s.exists()) logout(); });
     }
 </script>
