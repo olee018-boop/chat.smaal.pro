@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v3.5</title>
+    <title>Pro Chat Elite v3.6</title>
     <style>
         :root {
             --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
@@ -40,32 +40,29 @@
             backdrop-filter: var(--glass); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: 90px; 
         }
 
-        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
+        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; margin-bottom: 4px; }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; }
+        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; position: relative; }
         .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
+        
+        .pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
         
         input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; margin-bottom: 10px; }
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .sec-btn { background: #27272a; margin-top: 5px; }
 
-        /* VERSION BADGE */
-        .v-tag { font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; opacity: 0.6; }
-
-        /* TOAST NOTIFICATIONS (No Popups) */
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 10px 20px; border-radius: 10px; z-index: 3000; display: none; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 
-        /* MODAL OVERLAY */
         #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-box { background: #18181b; padding: 20px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; }
+        .modal-box { background: #18181b; padding: 20px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border: 1px solid #333; }
 
         #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .google-btn { background: #fff; color: #000; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+        .v-tag { font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; opacity: 0.6; }
     </style>
 </head>
 <body>
 
-<div id="toast">Message Sent!</div>
+<div id="toast"></div>
 
 <div id="modal">
     <div class="modal-box">
@@ -78,12 +75,12 @@
 
 <div id="loginScreen">
     <div style="width: 100%; max-width: 300px;">
-        <h1 style="margin-bottom: 25px;">Pro Chat <span class="v-tag" id="loginVer">v3.5</span></h1>
+        <h1 style="margin-bottom: 25px;">Pro Chat <span class="v-tag">v3.6</span></h1>
         <input type="text" id="userInp" placeholder="Username">
         <input type="password" id="passInp" placeholder="Password">
         <button onclick="login()" style="width:100%">Sign In / Register</button>
         <div style="margin: 15px 0; opacity: 0.5;">OR</div>
-        <button class="google-btn" onclick="loginWithGoogle()">
+        <button onclick="loginWithGoogle()" style="background:#fff; color:#000; width:100%; display:flex; align-items:center; justify-content:center; gap:10px;">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Sign in with Google
         </button>
     </div>
@@ -91,7 +88,7 @@
 
 <div id="app">
     <div id="home" class="screen active">
-        <div class="header"><h2>Messages</h2><span class="v-tag">v3.5</span></div>
+        <div class="header"><h2>Messages</h2></div>
         <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
             <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 12px;">FRIENDS</p>
             <div id="friendList"></div>
@@ -110,7 +107,7 @@
         </div>
         <div id="chatBox"></div>
         <div class="input-wrap">
-            <input type="file" id="fileInp" style="display:none" onchange="sendMedia(this)">
+            <input type="file" id="fileInp" style="display:none" accept="image/*" onchange="sendMedia(this)">
             <button onclick="document.getElementById('fileInp').click()" style="width:45px">+</button>
             <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
             <button onclick="sendText()" style="width:60px">➤</button>
@@ -131,34 +128,21 @@
         <div style="padding: 20px; overflow-y: auto; flex:1; padding-bottom: 120px;">
             <div style="text-align: center; margin-bottom: 25px;">
                 <img id="myPFP" class="pfp" style="width:80px; height:80px; margin-bottom:10px">
-                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn">Change Avatar</button>
-                <input type="file" id="pfpInp" style="display:none" onchange="uploadPFP(this)">
+                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn" style="display:block; margin: 0 auto;">Change Avatar</button>
+                <input type="file" id="pfpInp" style="display:none" accept="image/*" onchange="uploadPFP(this)">
             </div>
             
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 8px;">IDENTITY</p>
-            <input type="text" id="newNameInp" placeholder="New Display Name">
-            <button onclick="changeUsername()" class="sec-btn" style="width:100%">Update Identity</button>
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-bottom: 8px;">SECURITY</p>
+            <input type="text" id="newNameInp" placeholder="New Username">
+            <input type="password" id="newPassInp" placeholder="New Password">
+            <button onclick="updateAccount()" class="sec-btn" style="width:100%">Update Profile</button>
 
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 20px; margin-bottom: 8px;">INTERFACE</p>
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 20px; margin-bottom: 8px;">THEME</p>
             <select onchange="updateTheme(this.value)">
                 <option value="dark">Emerald Dark</option>
                 <option value="midnight">Midnight OLED</option>
                 <option value="rose">Rose Velvet</option>
             </select>
-
-            <p style="font-size: 11px; font-weight: bold; opacity: 0.4; margin-top: 20px; margin-bottom: 8px;">VERSIONS & LOGS</p>
-            <select id="verSelector" onchange="switchVersion(this.value)">
-                <option value="3.5">v3.5 (Latest - Versions & No Popups)</option>
-                <option value="3.0">v3.0 (Google Login Update)</option>
-                <option value="2.0">v2.0 (Legacy UI)</option>
-            </select>
-            <div id="updateLog" style="font-size: 12px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; line-height: 1.5;">
-                <b>Latest Update:</b><br>
-                • Switched to hostpxp Firebase<br>
-                • Added Version Switcher<br>
-                • Removed all native Popups (Alerts/Confirms)<br>
-                • Real-time Account Protection (Instant Kick)
-            </div>
             
             <button onclick="logout()" style="margin-top: 40px; background: #333; width:100%">Sign Out</button>
             <button onclick="askDelete()" style="background: rgba(239,68,68,0.1); color:#ef4444; border:1px solid #ef4444; margin-top:10px; width:100%">Delete Account</button>
@@ -174,7 +158,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, update } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -197,7 +181,7 @@
     let activeChatId = null;
     let isDM = false;
 
-    // --- NO POPUP UTILS ---
+    // --- UI UTILS ---
     window.showToast = (msg) => {
         const t = document.getElementById("toast");
         t.innerText = msg; t.style.display = "block";
@@ -213,48 +197,67 @@
 
     window.closeModal = () => document.getElementById("modal").style.display = "none";
 
-    // --- VERSION SYSTEM ---
-    window.switchVersion = (v) => {
-        localStorage.setItem("appVer", v);
-        showToast("Switched to version " + v);
-        // In a real app, this would load different code, here we simulate the swap
-    };
-
-    // --- ACCOUNT MONITOR (INSTANT KICK) ---
-    if (currentUser) {
-        onValue(ref(db, 'users/' + currentUser), (s) => {
-            if (!s.exists()) {
-                logout();
-            }
-        });
-    }
-
-    window.loginWithGoogle = async () => {
-        try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-            const username = user.displayName.replace(/\s+/g, '_').toLowerCase();
-            const snap = await get(ref(db, 'users/' + username));
-            if(!snap.exists()){
-                await set(ref(db, 'users/' + username), { pass: "google_auth", pfp: user.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed="+username });
-            }
-            currentUser = username; localStorage.setItem("chatU", username); location.reload();
-        } catch (e) { showToast("Google Error"); }
-    };
-
+    // --- AUTH ---
     window.login = async () => {
-        const u = document.getElementById("userInp").value.trim();
+        const u = document.getElementById("userInp").value.trim().toLowerCase();
         const p = document.getElementById("passInp").value.trim();
-        if(!u || !p) return showToast("Enter details");
+        if(!u || !p) return showToast("Enter credentials");
         const snap = await get(ref(db, 'users/' + u));
         if(snap.exists()) {
-            if(snap.val().pass !== p && (u.toLowerCase() !== 'owen' || p.toLowerCase() !== 'owen')) return showToast("Wrong password");
+            if(snap.val().pass !== p) return showToast("Wrong password");
         } else {
             await set(ref(db, 'users/' + u), { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u });
         }
         currentUser = u; localStorage.setItem("chatU", u); location.reload();
     };
 
+    window.loginWithGoogle = async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const u = result.user.displayName.replace(/\s+/g, '_').toLowerCase();
+            const snap = await get(ref(db, 'users/' + u));
+            if(!snap.exists()) await set(ref(db, 'users/' + u), { pass: "google", pfp: result.user.photoURL });
+            currentUser = u; localStorage.setItem("chatU", u); location.reload();
+        } catch(e) { showToast("Login failed"); }
+    };
+
+    // --- ACCOUNT UPDATE (Username & PFP Fix) ---
+    window.uploadPFP = (input) => {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result;
+            await update(ref(db, `users/${currentUser}`), { pfp: base64 });
+            document.getElementById("myPFP").src = base64;
+            showToast("PFP Updated!");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.updateAccount = async () => {
+        const newU = document.getElementById("newNameInp").value.trim().toLowerCase();
+        const newP = document.getElementById("newPassInp").value.trim();
+        if(!newU && !newP) return showToast("Nothing to update");
+
+        const snap = await get(ref(db, 'users/' + currentUser));
+        const userData = snap.val();
+
+        if(newU && newU !== currentUser) {
+            const check = await get(ref(db, 'users/' + newU));
+            if(check.exists()) return showToast("Username taken");
+            await set(ref(db, 'users/' + newU), { ...userData, pass: newP || userData.pass });
+            await remove(ref(db, 'users/' + currentUser));
+            currentUser = newU;
+            localStorage.setItem("chatU", newU);
+        } else if(newP) {
+            await update(ref(db, `users/${currentUser}`), { pass: newP });
+        }
+        showToast("Profile Updated!");
+        setTimeout(() => location.reload(), 1000);
+    };
+
+    // --- CHAT LOGIC ---
     window.joinRoom = (name) => {
         const roomName = name || document.getElementById("newRoomInp").value.trim();
         if(!roomName) return;
@@ -273,62 +276,79 @@
         onChildAdded(ref(db, 'dms/' + activeChatId), (s) => renderMsg(s.val()));
     };
 
-    window.sendText = () => {
+    window.sendText = async () => {
         const i = document.getElementById("msgInp"); if(!i.value) return;
+        const uSnap = await get(ref(db, `users/${currentUser}`));
         const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
-        push(ref(db, path), { name: currentUser, text: i.value, pfp: localStorage.getItem("pfp") });
+        push(ref(db, path), { 
+            sender: currentUser, 
+            text: i.value, 
+            pfp: uSnap.val().pfp || "" 
+        });
         i.value = "";
     };
 
     window.sendMedia = (input) => {
+        const file = input.files[0];
+        if(!file) return;
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
+            const uSnap = await get(ref(db, `users/${currentUser}`));
             const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
-            push(ref(db, path), { name: currentUser, media: e.target.result, pfp: localStorage.getItem("pfp") });
+            push(ref(db, path), { 
+                sender: currentUser, 
+                media: e.target.result, 
+                pfp: uSnap.val().pfp || "" 
+            });
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     };
 
+    // FIXED: Correctly attributes sender and PFP in real-time
     function renderMsg(data) {
         const box = document.getElementById("chatBox");
-        const isMe = data.name === currentUser;
+        const isMe = data.sender === currentUser;
         const div = document.createElement("div");
         div.className = `msg ${isMe ? 'me' : ''}`;
-        let body = data.text ? `<div>${data.text}</div>` : `<img src="${data.media}" style="max-width:100%; border-radius:12px; margin-top:5px">`;
-        div.innerHTML = `<img src="${data.pfp}" class="pfp"><div class="bubble"><small style="display:block;font-size:10px;opacity:0.5">${isMe?'':data.name}</small>${body}</div>`;
+        
+        let content = data.text ? `<div>${data.text}</div>` : `<img src="${data.media}" style="max-width:100%; max-height:300px; border-radius:12px; display:block; margin-top:5px;">`;
+        
+        div.innerHTML = `
+            <img src="${data.pfp || 'https://via.placeholder.com/32'}" class="pfp">
+            <div class="bubble">
+                <small style="display:block; font-size:10px; opacity:0.6; margin-bottom:2px">${data.sender}</small>
+                ${content}
+            </div>`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
+    // --- SYNC ---
     function syncSocial() {
         onValue(ref(db, 'users'), (snap) => {
             const list = document.getElementById("allUsers"); list.innerHTML = "";
-            const isOwen = currentUser.toLowerCase() === "owen";
+            const isOwen = currentUser === "owen";
             snap.forEach(c => {
                 const name = c.key; 
                 if(name === currentUser) { 
                     document.getElementById("myPFP").src = c.val().pfp; 
-                    localStorage.setItem("pfp", c.val().pfp); 
                     return; 
                 }
                 const div = document.createElement("div");
                 div.style = "display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--panel); border-radius:15px; margin-bottom:10px;";
                 div.innerHTML = `<b>${name}</b>`;
-                const btnWrap = document.createElement("div");
-                
-                const btn = document.createElement("button");
-                btn.innerText = "Add"; btn.style = "width:auto; padding:5px 12px; font-size:12px;";
-                btn.onclick = () => { set(ref(db, `requests/${name}/${currentUser}`), true); showToast("Request Sent"); };
-                btnWrap.appendChild(btn);
-
+                const bWrap = document.createElement("div");
+                const add = document.createElement("button");
+                add.innerText = "Add"; add.style = "width:auto; padding:5px 12px; font-size:12px;";
+                add.onclick = () => { set(ref(db, `requests/${name}/${currentUser}`), true); showToast("Sent!"); };
+                bWrap.appendChild(add);
                 if(isOwen) {
-                    const dBtn = document.createElement("button"); dBtn.innerText = "DEL"; 
-                    dBtn.style = "width:auto; padding:5px 10px; background:#ef4444; margin-left:5px; font-size:10px;";
-                    dBtn.onclick = () => { openModal("Delete User?", `Confirm deleting ${name}?`, () => remove(ref(db, 'users/' + name))); }; 
-                    btnWrap.appendChild(dBtn);
+                    const del = document.createElement("button"); del.innerText = "X";
+                    del.style = "background:red; width:auto; margin-left:5px; padding:5px 10px;";
+                    del.onclick = () => openModal("Delete?", name, () => remove(ref(db, 'users/'+name)));
+                    bWrap.appendChild(del);
                 }
-                div.appendChild(btnWrap);
-                list.appendChild(div);
+                div.appendChild(bWrap); list.appendChild(div);
             });
         });
 
@@ -339,9 +359,9 @@
                 const d = document.createElement("div");
                 d.style = "padding:15px; background:var(--panel); border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;";
                 d.innerHTML = `<div onclick="openDM('${f}')" style="flex:1;"><b>${f}</b></div>`;
-                const rb = document.createElement("span"); rb.innerText = "✕"; rb.style="color:red; padding:10px; cursor:pointer";
-                rb.onclick = () => { openModal("Remove Friend?", `Unfriend ${f}?`, () => { remove(ref(db, `friends/${currentUser}/${f}`)); remove(ref(db, `friends/${f}/${currentUser}`)); }); };
-                d.appendChild(rb); list.appendChild(d);
+                const x = document.createElement("span"); x.innerText = "✕"; x.style="color:red; cursor:pointer";
+                x.onclick = () => openModal("Unfriend?", f, () => { remove(ref(db, `friends/${currentUser}/${f}`)); remove(ref(db, `friends/${f}/${currentUser}`)); });
+                d.appendChild(x); list.appendChild(d);
             });
         });
 
@@ -356,8 +376,8 @@
         });
     }
 
-    window.acceptFriend = (s) => { set(ref(db, `friends/${currentUser}/${s}`), true); set(ref(db, `friends/${s}/${currentUser}`), true); remove(ref(db, `requests/${currentUser}/${s}`)); showToast("Friend Added!"); };
-    window.askDelete = () => openModal("Delete Account?", "This is permanent. Proceed?", () => { remove(ref(db, 'users/' + currentUser)); logout(); });
+    window.acceptFriend = (s) => { set(ref(db, `friends/${currentUser}/${s}`), true); set(ref(db, `friends/${s}/${currentUser}`), true); remove(ref(db, `requests/${currentUser}/${s}`)); showToast("Added!"); };
+    window.askDelete = () => openModal("DELETE ACCOUNT?", "Everything will be lost.", () => { remove(ref(db, 'users/' + currentUser)); logout(); });
     window.logout = () => { localStorage.clear(); location.reload(); };
 
     window.setTab = (id) => {
@@ -368,7 +388,11 @@
     };
 
     window.updateTheme = (v) => { document.documentElement.setAttribute('data-theme', v); localStorage.setItem("theme", v); };
-    
+    window.saveRoom = () => {
+        let s = JSON.parse(localStorage.getItem("saved") || "[]");
+        if(!s.includes(activeChatId)) { s.push(activeChatId); localStorage.setItem("saved", JSON.stringify(s)); renderSaved(); showToast("Saved!"); }
+    };
+
     function renderSaved() {
         const list = document.getElementById("roomList"); list.innerHTML = "";
         JSON.parse(localStorage.getItem("saved") || "[]").forEach(r => {
@@ -381,6 +405,8 @@
         document.getElementById("loginScreen").style.display = "none";
         syncSocial(); renderSaved();
         updateTheme(localStorage.getItem("theme") || "dark");
+        // Check if kicked
+        onValue(ref(db, 'users/'+currentUser), s => { if(!s.exists()) logout(); });
     }
 </script>
 </body>
