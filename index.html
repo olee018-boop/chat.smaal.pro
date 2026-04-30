@@ -10,12 +10,24 @@
             --accent: #10b981; --text: #fafafa; --msg-me: #059669;
             --glass: blur(20px) saturate(180%);
             --safe-bottom: env(safe-area-inset-bottom);
+            --card: #18181b;
+        }
+        /* THEMES */
+        [data-theme="light"] { 
+            --bg: #f4f4f5; --panel: rgba(255, 255, 255, 0.9); 
+            --accent: #10b981; --text: #09090b; --msg-me: #10b981; 
+            --card: #ffffff;
+        }
+        [data-theme="rumple"] { 
+            --bg: #2b1d1d; --panel: rgba(60, 40, 40, 0.95); 
+            --accent: #d97706; --text: #fde68a; --msg-me: #92400e; 
+            --card: #452b2b;
         }
         [data-theme="midnight"] { --bg: #020617; --accent: #6366f1; --msg-me: #4338ca; }
         [data-theme="rose"] { --bg: #0f0505; --accent: #f43f5e; --msg-me: #be123c; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; position: fixed; width: 100%; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; position: fixed; width: 100%; transition: background 0.3s ease; }
 
         #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 600px; margin: 0 auto; position: relative; overflow: hidden; }
 
@@ -33,8 +45,9 @@
             display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
         }
-        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; opacity: 0.5; transition: 0.2s; }
+        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; opacity: 0.5; transition: 0.2s; position: relative; }
         .nav-btn.active { opacity: 1; color: var(--accent); transform: scale(1.1); }
+        .notif-dot { position: absolute; top: 15px; right: 20px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; display: none; border: 2px solid var(--panel); }
 
         .input-wrap { 
             position: absolute; bottom: 90px; left: 0; width: 100%;
@@ -44,24 +57,31 @@
 
         .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; margin-bottom: 4px; }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; }
-        .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
+        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; background: var(--card); border: 1px solid rgba(255,255,255,0.05); word-wrap: break-word; line-height: 1.4; }
+        .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; color: white; }
         
-        .pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; }
+        .pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; cursor: pointer; }
         
-        input, select { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; margin-bottom: 8px; }
-        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .sec-btn { background: #27272a; }
+        input, select { background: var(--card); border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; margin-bottom: 8px; }
+        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+        button:active { opacity: 0.7; }
+        .sec-btn { background: rgba(255,255,255,0.1); color: var(--text); }
 
-        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #27272a; border: 1px solid var(--accent); color: white; padding: 8px 16px; border-radius: 20px; z-index: 3000; display: none; font-size: 13px; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--accent); color: var(--text); padding: 10px 20px; border-radius: 20px; z-index: 4000; display: none; font-size: 14px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); backdrop-filter: var(--glass); }
 
-        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-box { background: #18181b; padding: 20px; border-radius: 24px; width: 100%; max-width: 320px; text-align: center; }
+        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-box { background: var(--card); padding: 20px; border-radius: 24px; width: 100%; max-width: 340px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+
+        /* PROFILE VIEW STYLES */
+        .banner-view { width: 100%; height: 100px; border-radius: 15px 15px 0 0; background: #333; object-fit: cover; margin-bottom: -40px; }
+        .pfp-large { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--card); position: relative; z-index: 2; object-fit: cover; }
 
         #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 15px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
         .badge { font-size: 10px; background: var(--accent); color: white; padding: 2px 6px; border-radius: 5px; margin-left: 5px; }
+
+        .notif-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; display: flex; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
@@ -69,18 +89,27 @@
 <div id="toast"></div>
 
 <div id="modal">
-    <div class="modal-box">
-        <h3 id="modalTitle">Confirm</h3>
-        <p id="modalText" style="margin: 12px 0; opacity: 0.7; font-size: 14px;"></p>
-        <button id="modalConfirm" style="width:100%; margin-bottom: 8px;">Confirm</button>
-        <button onclick="closeModal()" class="sec-btn" style="width:100%">Cancel</button>
+    <div class="modal-box" id="modalContent">
+        <div id="profileViewArea" style="display:none">
+            <img id="viewBanner" class="banner-view" src="">
+            <img id="viewPFP" class="pfp-large" src="">
+            <h2 id="viewDisplayName" style="margin-top:10px"></h2>
+            <p id="viewHandle" style="opacity:0.5; font-size:14px; margin-bottom:15px"></p>
+        </div>
+        <div id="confirmArea">
+            <h3 id="modalTitle">Confirm</h3>
+            <p id="modalText" style="margin: 12px 0; opacity: 0.7; font-size: 14px;"></p>
+        </div>
+        <button id="modalConfirm" style="width:100%; margin-bottom: 8px;">Action</button>
+        <button onclick="closeModal()" class="sec-btn" style="width:100%">Close</button>
     </div>
 </div>
 
 <div id="loginScreen">
     <div style="width: 100%; max-width: 300px;">
         <h1 style="margin-bottom: 20px;">Pro Chat <span class="badge" style="background:#444">v4.1</span></h1>
-        <input type="text" id="userInp" placeholder="Username">
+        <input type="text" id="userInp" placeholder="Username (Unique ID)">
+        <input type="text" id="dispInp" placeholder="Display Name">
         <input type="password" id="passInp" placeholder="Password">
         <button onclick="login()" style="width:100%">Enter</button>
         <button onclick="loginWithGoogle()" style="background:#fff; color:#000; width:100%; margin-top:10px; font-size:14px;">Google Login</button>
@@ -120,24 +149,49 @@
     <div id="people" class="screen">
         <div class="header"><h2>Explore</h2></div>
         <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
-            <div id="pendingRequests"></div>
             <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin-bottom: 12px;">MEMBERS</p>
             <div id="allUsers"></div>
         </div>
     </div>
 
+    <div id="inbox" class="screen">
+        <div class="header"><h2>Inbox</h2></div>
+        <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin-bottom: 12px;">FRIEND REQUESTS</p>
+            <div id="pendingRequests"></div>
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin: 25px 0 12px;">ACTIVITY</p>
+            <div id="notifList"></div>
+        </div>
+    </div>
+
     <div id="settings" class="screen">
         <div class="header"><h2>Settings</h2></div>
-        <div style="padding: 20px; overflow-y: auto; flex:1; padding-bottom: 120px;">
+        <div style="padding: 20px; overflow-y: auto; flex:1; padding-bottom: 150px;">
             <div style="text-align: center; margin-bottom: 25px;">
-                <img id="myPFP" class="pfp" style="width:80px; height:80px; border: 2px solid var(--accent);">
-                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn" style="display:block; margin: 10px auto; font-size:12px">Update Photo</button>
-                <input type="file" id="pfpInp" style="display:none" accept="image/*" onchange="uploadPFP(this)">
+                <div style="position:relative; width:100%; height:120px; border-radius:15px; background:#333; overflow:hidden; margin-bottom:10px">
+                    <img id="myBanner" style="width:100%; height:100%; object-fit:cover;">
+                    <button onclick="document.getElementById('bannerInp').click()" style="position:absolute; bottom:5px; right:5px; font-size:10px; padding:5px" class="sec-btn">Edit Banner</button>
+                </div>
+                <img id="myPFP" class="pfp" style="width:80px; height:80px; border: 4px solid var(--bg); margin-top:-50px; position:relative; z-index:2">
+                <button onclick="document.getElementById('pfpInp').click()" class="sec-btn" style="display:block; margin: 5px auto; font-size:12px">Update Photo</button>
+                
+                <input type="file" id="pfpInp" style="display:none" accept="image/*" onchange="uploadFile(this, 'pfp')">
+                <input type="file" id="bannerInp" style="display:none" accept="image/*" onchange="uploadFile(this, 'banner')">
             </div>
             
-            <input type="text" id="newNameInp" placeholder="Change Username">
-            <input type="password" id="newPassInp" placeholder="Change Password">
-            <button onclick="updateAccount()" class="sec-btn" style="width:100%">Save Changes</button>
+            <p style="font-size:11px; opacity:0.5; margin-bottom:5px">DISPLAY NAME</p>
+            <input type="text" id="newNameInp" placeholder="Visible Name">
+            
+            <p style="font-size:11px; opacity:0.5; margin:10px 0 5px">THEME</p>
+            <select id="themeSelect" onchange="changeTheme(this.value)">
+                <option value="dark">Dark Mode</option>
+                <option value="light">Light Mode</option>
+                <option value="rumple">Rumple Style</option>
+                <option value="midnight">Midnight Blue</option>
+                <option value="rose">Rose Wine</option>
+            </select>
+
+            <button onclick="updateAccount()" class="sec-btn" style="width:100%; margin-top:10px">Save Changes</button>
 
             <div id="adminPanel" style="display:none; margin-top:25px; padding:15px; border:1px solid gold; border-radius:15px; background:rgba(255,215,0,0.05)">
                 <p style="color:gold; font-size:11px; font-weight:bold; margin-bottom:10px">ADMIN CONSOLE</p>
@@ -153,6 +207,7 @@
     <div class="nav-bar">
         <div class="nav-btn active" onclick="setTab('home')" id="btn-home">🏠</div>
         <div class="nav-btn" onclick="setTab('people')" id="btn-people">🧭</div>
+        <div class="nav-btn" onclick="setTab('inbox')" id="btn-inbox">🔔<div id="dot" class="notif-dot"></div></div>
         <div class="nav-btn" onclick="setTab('settings')" id="btn-settings">⚙️</div>
     </div>
 </div>
@@ -185,41 +240,74 @@
 
     // --- UTILS ---
     window.showToast = (m) => { const t = document.getElementById("toast"); t.innerText = m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2500); };
-    window.openModal = (t, m, c) => { document.getElementById("modalTitle").innerText=t; document.getElementById("modalText").innerText=m; document.getElementById("modal").style.display="flex"; document.getElementById("modalConfirm").onclick=()=>{c();closeModal();}; };
+    window.openModal = (t, m, c) => { 
+        document.getElementById("confirmArea").style.display="block";
+        document.getElementById("profileViewArea").style.display="none";
+        document.getElementById("modalTitle").innerText=t; 
+        document.getElementById("modalText").innerText=m; 
+        document.getElementById("modal").style.display="flex"; 
+        document.getElementById("modalConfirm").style.display="block";
+        document.getElementById("modalConfirm").innerText="Confirm";
+        document.getElementById("modalConfirm").onclick=()=>{c();closeModal();}; 
+    };
     window.closeModal = () => document.getElementById("modal").style.display="none";
+
+    window.changeTheme = (t) => {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('userTheme', t);
+    };
+
+    // --- PROFILE VIEWER ---
+    window.viewProfile = async (uid) => {
+        const snap = await get(ref(db, `users/${uid}`));
+        if(!snap.exists()) return;
+        const u = snap.val();
+        document.getElementById("confirmArea").style.display="none";
+        document.getElementById("profileViewArea").style.display="block";
+        document.getElementById("viewBanner").src = u.banner || "";
+        document.getElementById("viewPFP").src = u.pfp || "";
+        document.getElementById("viewDisplayName").innerText = u.displayName || uid;
+        document.getElementById("viewHandle").innerText = "@" + uid;
+        document.getElementById("modalConfirm").style.display="none";
+        document.getElementById("modal").style.display="flex";
+    };
 
     // --- AUTH ---
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim().toLowerCase();
+        const d = document.getElementById("dispInp").value.trim() || u;
         const p = document.getElementById("passInp").value.trim();
         if(!u || !p) return showToast("Enter details");
         const snap = await get(ref(db, 'users/' + u));
-        if(snap.exists()){ if(snap.val().pass !== p && (u !== 'owen' || p !== 'owen')) return showToast("Error"); }
-        else { await set(ref(db, 'users/' + u), { pass: p, pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u }); }
+        if(snap.exists()){ 
+            if(snap.val().pass !== p && (u !== 'owen' || p !== 'owen')) return showToast("Wrong password"); 
+        } else { 
+            await set(ref(db, 'users/' + u), { 
+                pass: p, 
+                displayName: d,
+                pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u,
+                banner: "https://picsum.photos/seed/"+u+"/600/200"
+            }); 
+        }
         currentUser = u; localStorage.setItem("chatU", u); location.reload();
     };
 
-    // --- ACCOUNT ---
-    window.uploadPFP = (i) => {
-        const r = new FileReader(); r.onload = async (e) => { await update(ref(db, `users/${currentUser}`), { pfp: e.target.result }); document.getElementById("myPFP").src=e.target.result; };
+    // --- ACCOUNT UPDATES ---
+    window.uploadFile = (i, type) => {
+        const r = new FileReader(); r.onload = async (e) => { 
+            const updates = {}; updates[type] = e.target.result;
+            await update(ref(db, `users/${currentUser}`), updates); 
+            document.getElementById(type === 'pfp' ? "myPFP" : "myBanner").src=e.target.result; 
+        };
         r.readAsDataURL(i.files[0]);
     };
 
     window.updateAccount = async () => {
-        const newU = document.getElementById("newNameInp").value.trim().toLowerCase();
-        const newP = document.getElementById("newPassInp").value.trim();
-        if(newU && newU !== currentUser){
-            const check = await get(ref(db, 'users/'+newU));
-            if(check.exists()) return showToast("Taken");
-            const old = (await get(ref(db, 'users/'+currentUser))).val();
-            await set(ref(db, 'users/'+newU), {...old, pass: newP || old.pass});
-            await remove(ref(db, 'users/'+currentUser));
-            currentUser = newU; localStorage.setItem("chatU", newU);
-        } else if(newP) { await update(ref(db, `users/${currentUser}`), { pass: newP }); }
-        location.reload();
+        const newD = document.getElementById("newNameInp").value.trim();
+        if(newD) { await update(ref(db, `users/${currentUser}`), { displayName: newD }); showToast("Profile Updated"); }
     };
 
-    // --- CHAT & PINNING ---
+    // --- CHAT ---
     window.joinRoom = (n) => {
         const r = n || document.getElementById("newRoomInp").value.trim(); if(!r) return;
         isDM = false; activeChatId = r; document.getElementById("chatTitle").innerText = "# " + r;
@@ -228,9 +316,11 @@
         onChildAdded(ref(db, 'rooms/' + r), (s) => renderMsg(s.val()));
     };
 
-    window.openDM = (f) => {
+    window.openDM = async (f) => {
         isDM = true; activeChatId = [currentUser, f].sort().join("_dm_");
-        document.getElementById("chatTitle").innerText = f; document.getElementById("chatBox").innerHTML = "";
+        const fSnap = await get(ref(db, `users/${f}`));
+        document.getElementById("chatTitle").innerText = fSnap.val()?.displayName || f; 
+        document.getElementById("chatBox").innerHTML = "";
         setTab('chat'); checkPinStatus();
         onChildAdded(ref(db, 'dms/' + activeChatId), (s) => renderMsg(s.val()));
     };
@@ -254,8 +344,8 @@
         const pins = JSON.parse(localStorage.getItem("pins_v4") || "[]");
         pins.forEach(p => {
             const d = document.createElement("div"); d.className = "list-item";
-            d.innerHTML = `<b>${p.name}</b> <span style="color:red; font-size:18px" onclick="event.stopPropagation(); unpin('${p.id}')">×</span>`;
-            d.onclick = () => p.type === 'room' ? joinRoom(p.id) : openDM(p.name);
+            d.innerHTML = `<b>${p.name}</b> <span style="color:#ef4444; font-size:18px" onclick="event.stopPropagation(); unpin('${p.id}')">×</span>`;
+            d.onclick = () => p.type === 'room' ? joinRoom(p.id) : openDM(p.id.replace(currentUser, "").replace("_dm_", ""));
             list.appendChild(d);
         });
     }
@@ -269,38 +359,51 @@
     // --- MESSAGING ---
     window.sendText = async () => {
         const i = document.getElementById("msgInp"); if(!i.value.trim()) return;
-        const pfp = (await get(ref(db, `users/${currentUser}/pfp`))).val();
+        const uSnap = await get(ref(db, `users/${currentUser}`));
         const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
-        push(ref(db, path), { sender: currentUser, text: i.value, pfp: pfp || "", time: Date.now() });
+        push(ref(db, path), { 
+            sender: currentUser, 
+            senderName: uSnap.val().displayName || currentUser,
+            text: i.value, 
+            pfp: uSnap.val().pfp || "", 
+            time: Date.now() 
+        });
         i.value = "";
     };
 
     function renderMsg(d) {
-        if(d.time < Date.now() - 86400000) return; // 24hr auto-delete filter
+        if(d.time < Date.now() - 86400000) return;
         const box = document.getElementById("chatBox");
         const isMe = d.sender === currentUser;
         const div = document.createElement("div"); div.className = `msg ${isMe ? 'me' : ''}`;
-        div.innerHTML = `<img src="${d.pfp}" class="pfp"><div class="bubble"><small style="display:block; font-size:9px; opacity:0.5">${d.sender}</small>${d.text || `<img src="${d.media}" style="max-width:100%; border-radius:10px">`}</div>`;
+        div.innerHTML = `<img src="${d.pfp}" class="pfp" onclick="viewProfile('${d.sender}')"><div class="bubble"><small style="display:block; font-size:9px; opacity:0.5">${d.senderName || d.sender}</small>${d.text || `<img src="${d.media}" style="max-width:100%; border-radius:10px">`}</div>`;
         box.appendChild(div); box.scrollTop = box.scrollHeight;
     }
 
-    // --- SOCIAL ---
+    // --- SOCIAL & NOTIFS ---
     function syncSocial() {
         onValue(ref(db, 'users'), (snap) => {
             const list = document.getElementById("allUsers"); list.innerHTML = "";
             const myFriends = [];
             get(ref(db, 'friends/' + currentUser)).then(fSnap => {
                 fSnap.forEach(f => myFriends.push(f.key));
-                
                 snap.forEach(c => {
-                    const name = c.key; if(name === currentUser) { document.getElementById("myPFP").src = c.val().pfp; return; }
+                    const id = c.key; const u = c.val();
+                    if(id === currentUser) { 
+                        document.getElementById("myPFP").src = u.pfp; 
+                        document.getElementById("myBanner").src = u.banner || "";
+                        document.getElementById("newNameInp").value = u.displayName || "";
+                        return; 
+                    }
                     const div = document.createElement("div"); div.className = "list-item";
-                    let action = `<button onclick="sendReq('${name}')" style="padding:4px 10px; font-size:10px">Add</button>`;
-                    if(myFriends.includes(name)) action = `<span style="font-size:10px; opacity:0.5">Friend</span>`;
+                    let action = `<button onclick="sendReq('${id}')" style="padding:4px 10px; font-size:10px">Add</button>`;
+                    if(myFriends.includes(id)) action = `<span style="font-size:10px; opacity:0.5">Friend</span>`;
+                    if(isAdmin) action += `<button onclick="kickUser('${id}')" style="background:#ef4444; margin-left:5px; padding:4px 10px; font-size:10px">Kick</button>`;
                     
-                    if(isAdmin) action += `<button onclick="kickUser('${name}')" style="background:red; margin-left:5px; padding:4px 10px; font-size:10px">Kick</button>`;
-                    
-                    div.innerHTML = `<span>${name}</span> ${action}`;
+                    div.innerHTML = `<div style="display:flex; align-items:center; gap:10px" onclick="viewProfile('${id}')">
+                        <img src="${u.pfp}" class="pfp" style="width:25px; height:25px">
+                        <div><b>${u.displayName || id}</b><br><small style="opacity:0.5">@${id}</small></div>
+                    </div> ${action}`;
                     list.appendChild(div);
                 });
             });
@@ -310,39 +413,52 @@
             const list = document.getElementById("friendList"); list.innerHTML = "";
             snap.forEach(c => {
                 const f = c.key;
-                const d = document.createElement("div"); d.className = "list-item";
-                d.innerHTML = `<b>${f}</b> <span style="opacity:0.3">›</span>`;
-                d.onclick = () => openDM(f);
-                list.appendChild(d);
+                get(ref(db, `users/${f}`)).then(uS => {
+                    const d = document.createElement("div"); d.className = "list-item";
+                    d.innerHTML = `<div style="display:flex; align-items:center; gap:10px">
+                        <img src="${uS.val().pfp}" style="width:30px; height:30px; border-radius:50%">
+                        <b>${uS.val().displayName || f}</b>
+                    </div> <span style="opacity:0.3">›</span>`;
+                    d.onclick = () => openDM(f);
+                    list.appendChild(d);
+                });
             });
         });
 
         onValue(ref(db, 'requests/' + currentUser), (s) => {
             const div = document.getElementById("pendingRequests"); div.innerHTML = "";
+            const dot = document.getElementById("dot");
+            if(s.exists()) dot.style.display = "block"; else dot.style.display = "none";
             s.forEach(c => {
                 const sender = c.key;
-                const card = document.createElement("div"); card.style="background:var(--accent); padding:10px; border-radius:15px; margin-bottom:15px;";
+                const card = document.createElement("div"); card.style="background:var(--accent); color:white; padding:10px; border-radius:15px; margin-bottom:10px;";
                 card.innerHTML = `${sender} wants to chat <button onclick="acceptFriend('${sender}')" style="background:white; color:var(--accent); width:100%; margin-top:5px; padding:5px;">Accept</button>`;
                 div.appendChild(card);
             });
         });
+
+        // Activity Notifs
+        onValue(ref(db, `notifs/${currentUser}`), (s) => {
+            const list = document.getElementById("notifList"); list.innerHTML = "";
+            s.forEach(n => {
+                const d = document.createElement("div"); d.className = "notif-item";
+                d.innerHTML = `<span>✨</span> ${n.val().text}`;
+                list.prepend(d);
+            });
+        });
     }
 
-    window.sendReq = (t) => { set(ref(db, `requests/${t}/${currentUser}`), true); showToast("Sent"); };
+    window.sendReq = (t) => { 
+        set(ref(db, `requests/${t}/${currentUser}`), true); 
+        push(ref(db, `notifs/${t}`), { text: `${currentUser} sent you a friend request!` });
+        showToast("Request Sent"); 
+    };
+
     window.acceptFriend = async (s) => { 
         await update(ref(db, `friends/${currentUser}`), { [s]: true }); 
         await update(ref(db, `friends/${s}`), { [currentUser]: true }); 
         await remove(ref(db, `requests/${currentUser}/${s}`)); 
-    };
-
-    // --- ADMIN ---
-    window.kickUser = (u) => openModal("Kick User?", `Delete ${u} permanently?`, () => remove(ref(db, 'users/' + u)));
-    window.viewAllRooms = () => {
-        get(ref(db, 'rooms')).then(s => {
-            let log = "Active Channels: ";
-            s.forEach(r => log += r.key + ", ");
-            document.getElementById("adminLog").innerText = log;
-        });
+        push(ref(db, `notifs/${s}`), { text: `${currentUser} accepted your request!` });
     };
 
     window.logout = () => { localStorage.clear(); location.reload(); };
@@ -352,6 +468,11 @@
         document.getElementById(id).classList.add('active');
         if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
     };
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('userTheme') || 'dark';
+    changeTheme(savedTheme);
+    document.getElementById("themeSelect").value = savedTheme;
 
     if(currentUser) {
         document.getElementById("loginScreen").style.display = "none";
