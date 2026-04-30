@@ -3,72 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v4.5</title>
+    <title>Pro Chat Elite v4.6</title>
     <style>
         :root {
-            --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
+            --bg: #09090b; --panel: rgba(24, 24, 27, 0.8);
             --accent: #10b981; --text: #fafafa; --msg-me: #059669;
-            --glass: blur(20px) saturate(180%);
+            --glass: blur(15px) saturate(160%);
             --safe-bottom: env(safe-area-inset-bottom);
             --card: #18181b; --dev-gold: #f59e0b;
         }
         /* THEMES */
-        [data-theme="light"] { --bg: #f4f4f5; --panel: rgba(255, 255, 255, 0.9); --accent: #10b981; --text: #09090b; --msg-me: #10b981; --card: #ffffff; }
-        [data-theme="rumple"] { --bg: #2b1d1d; --panel: rgba(60, 40, 40, 0.95); --accent: #d97706; --text: #fde68a; --msg-me: #92400e; --card: #452b2b; }
+        [data-theme="light"] { --bg: #f4f4f5; --panel: rgba(255, 255, 255, 0.8); --accent: #10b981; --text: #09090b; --msg-me: #10b981; --card: #ffffff; }
+        [data-theme="rumple"] { --bg: #2b1d1d; --panel: rgba(60, 40, 40, 0.8); --accent: #d97706; --text: #fde68a; --msg-me: #92400e; --card: #452b2b; }
         [data-theme="midnight"] { --bg: #020617; --accent: #6366f1; --msg-me: #4338ca; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; position: fixed; width: 100%; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* IPAD & RESPONSIVE CONTAINER */
-        #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 850px; margin: 0 auto; position: relative; overflow: hidden; border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); }
+        #app { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 900px; margin: 0 auto; position: relative; background: var(--bg); border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); }
 
-        /* IN-APP POPUP NOTIFICATIONS */
+        /* NOTIFICATIONS */
         #notifPopup { 
-            position: fixed; top: -120px; left: 50%; transform: translateX(-50%); 
-            width: 90%; max-width: 450px; background: var(--panel); backdrop-filter: var(--glass);
-            padding: 16px; border-radius: 24px; border: 1px solid var(--accent);
+            position: fixed; top: -150px; left: 50%; transform: translateX(-50%); 
+            width: 90%; max-width: 400px; background: var(--panel); backdrop-filter: var(--glass);
+            padding: 18px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.1);
             z-index: 5000; display: flex; align-items: center; gap: 14px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4); transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         #notifPopup.show { top: 25px; }
 
-        .screen { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.2s ease; }
-        .screen.active { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* SCREENS & ANIMATIONS */
+        .screen { display: none; flex-direction: column; height: 100%; opacity: 0; transform: translateY(10px); transition: all 0.4s ease; }
+        .screen.active { display: flex; opacity: 1; transform: translateY(0); }
 
-        .header { padding: 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; padding-top: calc(10px + env(safe-area-inset-top)); }
-        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 220px; -webkit-overflow-scrolling: touch; }
+        .header { padding: 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; padding-top: calc(15px + env(safe-area-inset-top)); }
+        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 240px; scroll-behavior: smooth; }
         
-        .nav-bar { position: absolute; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; height: 70px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 25px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; opacity: 0.4; transition: 0.3s; }
+        .nav-bar { position: absolute; bottom: calc(25px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: 92%; max-width: 550px; height: 75px; background: var(--panel); backdrop-filter: var(--glass); border-radius: 30px; display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; opacity: 0.3; transition: 0.3s; }
         .nav-btn.active { opacity: 1; color: var(--accent); transform: scale(1.1); }
+        .nav-btn span { font-size: 10px; font-weight: bold; margin-top: 4px; text-transform: uppercase; }
 
-        .input-wrap { position: absolute; bottom: 100px; left: 0; width: 100%; padding: 15px; display: flex; gap: 12px; background: var(--panel); backdrop-filter: var(--glass); border-top: 1px solid rgba(255,255,255,0.1); }
+        .input-wrap { position: absolute; bottom: 110px; left: 0; width: 100%; padding: 15px; display: flex; gap: 12px; background: var(--panel); backdrop-filter: var(--glass); border-top: 1px solid rgba(255,255,255,0.05); }
 
-        .msg { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; }
+        /* MESSAGES */
+        .msg { display: flex; gap: 12px; max-width: 85%; align-items: flex-end; animation: msgPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes msgPop { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
         .msg.ai { align-self: flex-start; }
-        .bubble { padding: 12px 16px; border-radius: 20px; font-size: 16px; background: var(--card); border: 1px solid rgba(255,255,255,0.05); word-wrap: break-word; line-height: 1.4; }
+        .bubble { padding: 14px 18px; border-radius: 22px; font-size: 16px; background: var(--card); border: 1px solid rgba(255,255,255,0.05); word-wrap: break-word; position: relative; }
         .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; color: white; }
-        .ai .bubble { border: 1.5px solid var(--dev-gold); border-bottom-left-radius: 4px; }
+        .ai .bubble { border: 2px solid var(--dev-gold); border-bottom-left-radius: 4px; box-shadow: 0 0 15px rgba(245, 158, 11, 0.1); }
         
-        .media-content { max-width: 100%; border-radius: 14px; display: block; margin-top: 8px; background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .pfp { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; cursor: pointer; border: 2px solid transparent; }
-        .pfp:hover { border-color: var(--accent); }
-        
-        input, select, textarea { background: var(--card); border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 14px; width: 100%; outline: none; font-size: 16px; }
-        button { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:active { transform: scale(0.97); }
-        .sec-btn { background: rgba(255,255,255,0.1); color: var(--text); }
-        .dev-btn { background: var(--dev-gold); color: black; }
+        .pfp { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #333; transition: 0.3s; border: 2px solid transparent; }
+        .pfp:hover { transform: scale(1.1); border-color: var(--accent); }
 
-        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); }
-        .modal-box { background: var(--card); padding: 25px; border-radius: 30px; width: 100%; max-width: 420px; border: 1px solid rgba(255,255,255,0.1); }
+        input, select, textarea { background: var(--card); border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px; border-radius: 16px; width: 100%; outline: none; transition: 0.2s; }
+        input:focus { border-color: var(--accent); background: rgba(255,255,255,0.05); }
+        button { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.95); opacity: 0.8; }
+        .sec-btn { background: rgba(255,255,255,0.08); color: var(--text); }
+        .dev-btn { background: var(--dev-gold); color: #000; }
+
+        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(12px); animation: fadeIn 0.3s ease; }
+        .modal-box { background: var(--card); padding: 30px; border-radius: 35px; width: 100%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
 
         #loginScreen { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 18px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--dev-gold); color: black; font-weight: bold; margin-left: 6px; vertical-align: middle; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 18px; background: rgba(255,255,255,0.03); border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .list-item:hover { background: rgba(255,255,255,0.06); transform: translateX(5px); }
+        .badge { font-size: 10px; padding: 3px 8px; border-radius: 6px; background: var(--dev-gold); color: black; font-weight: 900; margin-left: 8px; }
     </style>
 </head>
 <body>
@@ -86,84 +89,84 @@
 </div>
 
 <div id="loginScreen">
-    <div style="width: 100%; max-width: 320px;">
-        <h1 style="margin-bottom: 10px; font-size: 34px;">Pro Chat</h1>
-        <p style="opacity: 0.4; font-size: 14px; margin-bottom: 25px;">Ultimate $v4.5$</p>
+    <div style="width: 100%; max-width: 340px;">
+        <h1 style="margin-bottom: 8px; font-size: 38px; letter-spacing: -1px;">Pro Chat</h1>
+        <p style="opacity: 0.4; font-size: 14px; margin-bottom: 30px; font-weight: bold;">ELITE v4.6</p>
         <input type="text" id="userInp" placeholder="Username" style="margin-bottom:12px">
         <input type="password" id="passInp" placeholder="Password" style="margin-bottom:12px">
-        <button onclick="login()" style="width:100%; font-size: 18px;">Sign In</button>
+        <button onclick="login()" style="width:100%; font-size: 18px; padding: 18px;">Sign In / Sign Up</button>
     </div>
 </div>
 
 <div id="app">
     <div id="home" class="screen active">
         <div class="header"><h2>Home</h2></div>
-        <div style="flex: 1; overflow-y: auto; padding: 25px 25px 150px;">
-            <p style="font-size: 12px; font-weight: 800; opacity: 0.4; letter-spacing: 1px; margin-bottom: 15px;">DIRECT MESSAGES</p>
+        <div style="flex: 1; overflow-y: auto; padding: 25px 25px 160px;">
+            <p style="font-size: 11px; font-weight: 900; opacity: 0.3; letter-spacing: 2px; margin-bottom: 15px;">MESSAGES</p>
             <div id="friendList"></div>
-            <p style="font-size: 12px; font-weight: 800; opacity: 0.4; letter-spacing: 1px; margin: 30px 0 15px;">PINNED ROOMS</p>
+            <p style="font-size: 11px; font-weight: 900; opacity: 0.3; letter-spacing: 2px; margin: 35px 0 15px;">PUBLIC ROOMS</p>
             <div id="roomList"></div>
             <div style="margin-top: 25px; display: flex; gap: 10px;">
-                <input type="text" id="newRoomInp" placeholder="Join Room ID..." style="margin-bottom:0">
-                <button onclick="joinRoom()" style="padding: 0 20px;">Join</button>
+                <input type="text" id="newRoomInp" placeholder="Room ID..." style="margin-bottom:0">
+                <button onclick="joinRoom()" style="padding: 0 25px;">Join</button>
             </div>
         </div>
     </div>
 
     <div id="chat" class="screen">
         <div class="header">
-            <span onclick="setTab('home')" style="cursor:pointer; font-size: 26px;">✕</span>
+            <span onclick="setTab('home')" style="cursor:pointer; font-size: 28px;">✕</span>
             <b id="chatTitle">...</b>
-            <span id="pinIcon" onclick="togglePin()" style="cursor:pointer; font-size: 26px;">☆</span>
+            <span id="pinIcon" onclick="togglePin()" style="cursor:pointer; font-size: 28px; opacity: 0.3;">☆</span>
         </div>
         <div id="chatBox"></div>
         <div class="input-wrap">
             <input type="file" id="mediaInp" style="display:none" accept="image/*,video/*" onchange="sendMedia(this)">
-            <button onclick="document.getElementById('mediaInp').click()" class="sec-btn" style="width:50px; font-size: 22px;">+</button>
-            <input type="text" id="msgInp" placeholder="Type something..." onkeypress="if(event.key==='Enter') sendText()">
-            <button onclick="sendText()" style="width:70px; font-size: 22px;">➤</button>
+            <button onclick="document.getElementById('mediaInp').click()" class="sec-btn" style="width:55px; font-size: 24px;">+</button>
+            <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
+            <button onclick="sendText()" style="width:75px; font-size: 22px;">➤</button>
         </div>
     </div>
 
     <div id="people" class="screen">
         <div class="header"><h2>Explore</h2></div>
-        <div style="flex: 1; overflow-y: auto; padding: 25px 25px 150px;">
+        <div style="flex: 1; overflow-y: auto; padding: 25px 25px 160px;">
             <div id="pendingRequests"></div>
-            <p style="font-size: 12px; font-weight: 800; opacity: 0.4; letter-spacing: 1px; margin-bottom: 15px;">COMMUNITY</p>
+            <p style="font-size: 11px; font-weight: 900; opacity: 0.3; letter-spacing: 2px; margin-bottom: 15px;">MEMBERS</p>
             <div id="allUsers"></div>
         </div>
     </div>
 
     <div id="settings" class="screen">
         <div class="header"><h2>Settings</h2></div>
-        <div style="padding: 25px; overflow-y: auto; flex:1; padding-bottom: 150px;">
-            <div style="text-align: center; margin-bottom: 25px;">
-                <img id="myPFP" class="pfp" style="width:90px; height:90px; border: 4px solid var(--accent); margin-bottom: 10px;">
+        <div style="padding: 25px; overflow-y: auto; flex:1; padding-bottom: 160px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img id="myPFP" class="pfp" style="width:100px; height:100px; border: 4px solid var(--accent); margin-bottom: 12px;">
                 <h3 id="setDisplayName"></h3>
-                <p id="setHandle" style="opacity:0.4; font-size:13px"></p>
+                <p id="setHandle" style="opacity:0.4; font-size:14px"></p>
             </div>
 
-            <div id="devSection" style="display:none; background: rgba(245, 158, 11, 0.1); border: 1.5px solid var(--dev-gold); padding: 18px; border-radius: 22px; margin-bottom: 20px;">
-                <h4 style="color: var(--dev-gold); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">🛠 Bot Developer Lab</h4>
-                <p style="font-size:11px; margin-bottom:12px; opacity:0.7">API Key Active: <code style="background:#000; padding:2px 5px">gsk_08M1...WqVq</code></p>
-                <button onclick="openBotLab()" class="dev-btn" style="width:100%">Create AI Bot</button>
+            <div id="devSection" style="display:none; background: rgba(245, 158, 11, 0.08); border: 2px solid var(--dev-gold); padding: 20px; border-radius: 25px; margin-bottom: 25px;">
+                <h4 style="color: var(--dev-gold); margin-bottom: 8px;">🛠 Developer Lab</h4>
+                <p style="font-size:12px; margin-bottom:15px; opacity:0.8">Grok-Beta AI access is enabled for your account.</p>
+                <button onclick="openBotLab()" class="dev-btn" style="width:100%">Bot Creation Suite</button>
             </div>
             
-            <p style="font-size:11px; opacity:0.5; margin-bottom:8px">APPEARANCE</p>
-            <select id="themeSelect" onchange="changeTheme(this.value)" style="margin-bottom:20px">
-                <option value="dark">Dark Mode</option>
-                <option value="light">Light Mode</option>
-                <option value="rumple">Rumple Style</option>
+            <p style="font-size:11px; opacity:0.5; margin-bottom:10px; font-weight:bold;">THEME</p>
+            <select id="themeSelect" onchange="changeTheme(this.value)" style="margin-bottom:25px">
+                <option value="dark">Onyx Dark</option>
+                <option value="light">Pure Light</option>
+                <option value="rumple">Rumple Gold</option>
                 <option value="midnight">Midnight Indigo</option>
             </select>
-            <button onclick="logout()" style="background: #333; width:100%; opacity: 0.8;">Sign Out</button>
+            <button onclick="logout()" style="background: #ef4444; width:100%; font-weight: 900;">SIGN OUT</button>
         </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-btn active" onclick="setTab('home')" id="btn-home">🏠</div>
-        <div class="nav-btn" onclick="setTab('people')" id="btn-people">🧭</div>
-        <div class="nav-btn" onclick="setTab('settings')" id="btn-settings">⚙️</div>
+        <div class="nav-btn active" onclick="setTab('home')" id="btn-home">🏠<span>Home</span></div>
+        <div class="nav-btn" onclick="setTab('people')" id="btn-people">🧭<span>Explore</span></div>
+        <div class="nav-btn" onclick="setTab('settings')" id="btn-settings">⚙️<span>Settings</span></div>
     </div>
 </div>
 
@@ -189,7 +192,7 @@
     let userData = null;
     let activeChatId = null;
 
-    // --- NOTIFICATION ENGINE ---
+    // --- UTILS ---
     window.triggerNotif = (title, text, img = null) => {
         const p = document.getElementById("notifPopup");
         const i = document.getElementById("notifImg");
@@ -200,26 +203,28 @@
         setTimeout(() => p.classList.remove("show"), 4500);
     };
 
-    // --- AUTH & SYNC ---
+    // --- AUTH & CROSS-DEVICE SYNC ---
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim().toLowerCase();
         const p = document.getElementById("passInp").value.trim();
-        if(!u || !p) return;
+        if(!u || !p) return triggerNotif("Error", "Fill in all fields");
 
         const snap = await get(ref(db, 'users/' + u));
         if(!snap.exists()) {
             await set(ref(db, 'users/' + u), { 
-                pass: p, displayName: u, isDev: false,
+                pass: p, displayName: u, isDev: (u === 'owen lee'),
                 pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u 
             });
+            triggerNotif("Success", "Account created!");
         } else if (snap.val().pass !== p) {
-            return triggerNotif("Security", "Incorrect password for this user.");
+            return triggerNotif("Denied", "Wrong password.");
         }
         
-        currentUser = u; localStorage.setItem("chatU", u); location.reload();
+        currentUser = u; localStorage.setItem("chatU", u); 
+        setTimeout(() => location.reload(), 800);
     };
 
-    // --- GROK AI INTEGRATION ---
+    // --- GROK AI ---
     async function getGrokResponse(prompt, personality) {
         try {
             const res = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -231,33 +236,21 @@
                 body: JSON.stringify({
                     model: "grok-beta",
                     messages: [
-                        { role: "system", content: `Your name is a Bot. Personality: ${personality}. Keep replies relatively concise.` },
+                        { role: "system", content: `You are an AI Bot. Personality: ${personality}` },
                         { role: "user", content: prompt }
                     ]
                 })
             });
+            if (!res.ok) throw new Error("API Error");
             const data = await res.json();
             return data.choices[0].message.content;
-        } catch (e) { return "Grok Error: Connection failed."; }
+        } catch (e) { 
+            console.error(e);
+            return "AI Connection Error: Please ensure API key is valid and CORS is allowed."; 
+        }
     }
 
-    // --- MEDIA & MESSAGING ---
-    window.sendMedia = (input) => {
-        const file = input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        const type = file.type.startsWith('video') ? 'video' : 'image';
-        reader.onload = async (e) => {
-            const path = activeChatId.includes("_dm_") ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
-            push(ref(db, path), {
-                sender: currentUser, senderName: userData.displayName || currentUser,
-                media: e.target.result, mediaType: type,
-                pfp: userData.pfp || "", time: Date.now()
-            });
-        };
-        reader.readAsDataURL(file);
-    };
-
+    // --- MESSAGING ---
     window.sendText = async () => {
         const i = document.getElementById("msgInp");
         const txt = i.value.trim();
@@ -270,7 +263,7 @@
         });
         i.value = "";
 
-        // Bot Trigger Logic
+        // Bot Logic
         const botSnap = await get(ref(db, 'bots'));
         if(botSnap.exists()) {
             botSnap.forEach(async (b) => {
@@ -300,27 +293,40 @@
                 : `<img src="${d.media}" class="media-content" onclick="window.open('${d.media}')">`;
         }
 
-        div.innerHTML = `<img src="${d.pfp}" class="pfp"><div class="bubble"><small style="display:block; font-size:10px; opacity:0.5; margin-bottom:2px">${d.senderName}</small>${content}</div>`;
+        div.innerHTML = `<img src="${d.pfp}" class="pfp"><div class="bubble"><small style="display:block; font-size:10px; opacity:0.5; margin-bottom:3px">${d.senderName}</small>${content}</div>`;
         box.appendChild(div); box.scrollTop = box.scrollHeight;
     }
 
-    // --- ADMIN / DEV LOGIC ---
+    // --- FRIEND SYSTEM FIXED ---
+    window.sendReq = (t) => { 
+        set(ref(db, `requests/${t}/${currentUser}`), true); 
+        triggerNotif("Request Sent", "Waiting for " + t + " to accept."); 
+    };
+
+    window.acceptFriend = async (s) => { 
+        await update(ref(db, `friends/${currentUser}`), { [s]: true }); 
+        await update(ref(db, `friends/${s}`), { [currentUser]: true }); 
+        await remove(ref(db, `requests/${currentUser}/${s}`));
+        triggerNotif("New Friend!", "You can now chat with " + s);
+    };
+
+    // --- ADMIN / DEV ---
     window.toggleDevStatus = async (uid, currentStatus) => {
         if(currentUser !== 'owen lee') return;
         await update(ref(db, `users/${uid}`), { isDev: !currentStatus });
-        triggerNotif("Permissions", `${uid} dev status is now ${!currentStatus}`);
+        triggerNotif("Permissions", `${uid} is now a Developer.`);
     };
 
     window.openBotLab = () => {
         const m = document.getElementById("modal");
         document.getElementById("modalContent").innerHTML = `
-            <h3>🤖 Bot Developer Lab</h3>
-            <p style="font-size:12px; margin-bottom:15px; opacity:0.6">Program an AI to monitor a specific room ID.</p>
-            <input type="text" id="botName" placeholder="Bot Name" style="margin-bottom:10px">
-            <textarea id="botPers" placeholder="Define Personality (e.g. You are a helpful space explorer)" style="height:80px; margin-bottom:10px"></textarea>
-            <input type="text" id="botRoom" placeholder="Target Room ID" style="margin-bottom:12px">
-            <button onclick="saveBot()" style="width:100%; margin-bottom:10px">Deploy Bot Instance</button>
-            <button onclick="document.getElementById('modal').style.display='none'" class="sec-btn" style="width:100%">Cancel</button>
+            <h3>🤖 Bot Creation Lab</h3>
+            <p style="font-size:13px; margin: 15px 0; opacity: 0.6;">Deploy an AI to a specific chat room.</p>
+            <input type="text" id="botName" placeholder="Bot Name" style="margin-bottom:12px">
+            <textarea id="botPers" placeholder="Personality Description..." style="height:100px; margin-bottom:12px"></textarea>
+            <input type="text" id="botRoom" placeholder="Room ID (e.g. main)" style="margin-bottom:15px">
+            <button onclick="saveBot()" style="width:100%; margin-bottom:10px">Deploy Bot</button>
+            <button onclick="document.getElementById('modal').style.display='none'" class="sec-btn" style="width:100%">Close</button>
         `;
         m.style.display = "flex";
     };
@@ -329,13 +335,13 @@
         const name = document.getElementById("botName").value;
         const personality = document.getElementById("botPers").value;
         const room = document.getElementById("botRoom").value;
-        if(!name || !personality || !room) return triggerNotif("Error", "Missing fields");
+        if(!name || !personality || !room) return;
         await push(ref(db, 'bots'), { name, personality, activeRoom: room, creator: currentUser });
         document.getElementById("modal").style.display = "none";
-        triggerNotif("Bot Online", `${name} has joined #${room}`);
+        triggerNotif("Bot Active", name + " is now live in " + room);
     };
 
-    // --- CORE LISTENERS ---
+    // --- ENGINE ---
     function initListeners() {
         onValue(ref(db, `users/${currentUser}`), (s) => {
             userData = s.val();
@@ -350,8 +356,8 @@
             snap.forEach(c => {
                 const id = c.key; if(id === currentUser) return;
                 const div = document.createElement("div"); div.className = "list-item";
-                let devBtn = (currentUser === 'owen lee') ? `<button class="dev-btn" style="padding:6px; font-size:10px" onclick="toggleDevStatus('${id}', ${c.val().isDev})">${c.val().isDev ? 'Revoke' : 'Grant'} Dev</button>` : '';
-                div.innerHTML = `<div><b>${c.val().displayName}</b> ${c.val().isDev ? '<span class="badge">DEV</span>':''}</div> <div style="display:flex; gap:8px">${devBtn} <button onclick="sendReq('${id}')" style="padding:6px 12px; font-size:11px">Add</button></div>`;
+                let devBtn = (currentUser === 'owen lee') ? `<button class="dev-btn" style="padding:6px; font-size:10px" onclick="toggleDevStatus('${id}', ${c.val().isDev})">Dev</button>` : '';
+                div.innerHTML = `<div><b>${c.val().displayName}</b> ${c.val().isDev ? '<span class="badge">DEV</span>':''}</div> <div style="display:flex; gap:8px">${devBtn} <button onclick="sendReq('${id}')" style="padding:6px 14px; font-size:11px">Add</button></div>`;
                 list.appendChild(div);
             });
         });
@@ -360,20 +366,21 @@
             const list = document.getElementById("friendList"); list.innerHTML = "";
             snap.forEach(c => {
                 const d = document.createElement("div"); d.className = "list-item";
-                d.innerHTML = `<b>${c.key}</b> <span>💬</span>`; d.onclick = () => openDM(c.key);
+                d.innerHTML = `<b>${c.key}</b> <span>⚡ Chat</span>`; d.onclick = () => openDM(c.key);
                 list.appendChild(d);
             });
         });
 
-        onValue(ref(db, `notifs/${currentUser}`), (s) => {
-            s.forEach(n => {
-                triggerNotif("Alert", n.val().text);
-                remove(ref(db, `notifs/${currentUser}/${n.key}`));
+        onValue(ref(db, 'requests/' + currentUser), (snap) => {
+            const list = document.getElementById("pendingRequests"); list.innerHTML = "";
+            snap.forEach(c => {
+                const d = document.createElement("div"); d.style = "background:var(--accent); color:white; padding:15px; border-radius:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;";
+                d.innerHTML = `<span><b>${c.key}</b> wants to be friends</span> <button onclick="acceptFriend('${c.key}')" style="background:white; color:var(--accent); padding:6px 12px; font-size:11px">Accept</button>`;
+                list.appendChild(d);
             });
         });
     }
 
-    // --- NAVIGATION ---
     window.joinRoom = (n) => {
         const r = n || document.getElementById("newRoomInp").value.trim(); if(!r) return;
         activeChatId = r; document.getElementById("chatTitle").innerText = "# " + r;
@@ -388,14 +395,18 @@
         onChildAdded(ref(db, 'dms/' + activeChatId), (s) => renderMsg(s.val()));
     };
 
-    window.sendReq = (t) => { set(ref(db, `requests/${t}/${currentUser}`), true); triggerNotif("Sent", "Friend request sent to " + t); };
-    window.changeTheme = (t) => { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('userTheme', t); };
-    
     window.setTab = (id) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+        const screen = document.getElementById(id);
+        screen.style.display = 'flex';
+        setTimeout(() => screen.classList.add('active'), 10);
         if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
+    };
+
+    window.changeTheme = (t) => { 
+        document.documentElement.setAttribute('data-theme', t); 
+        localStorage.setItem('userTheme', t); 
     };
 
     window.logout = () => { localStorage.clear(); location.reload(); };
