@@ -3,129 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v4.8</title>
+    <title>Pro Chat Elite v5.0</title>
     <style>
         :root {
-            --bg: #09090b; --panel: rgba(24, 24, 27, 0.9);
+            --bg: #09090b; --panel: rgba(24, 24, 27, 0.95);
             --accent: #10b981; --text: #fafafa; --msg-me: #059669;
             --glass: blur(25px) saturate(180%);
-            --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
             --card: #18181b; --dev-gold: #f59e0b;
         }
-        [data-theme="light"] { --bg: #f4f4f5; --panel: rgba(255, 255, 255, 0.9); --accent: #10b981; --text: #09090b; --msg-me: #10b981; --card: #ffffff; }
+        [data-theme="midnight"] { --bg: #020617; --accent: #6366f1; --msg-me: #4338ca; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        
-        html, body { 
-            height: 100%; width: 100%; overflow: hidden; 
-            background: var(--bg); color: var(--text); position: fixed;
-        }
+        /* IPAD SCROLL FIX */
+        html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); color: var(--text); position: fixed; }
 
-        #app { 
-            height: 100dvh; width: 100%; max-width: 950px; 
-            margin: 0 auto; display: flex; flex-direction: column; 
-            background: var(--bg); position: relative;
-        }
+        #app { height: 100dvh; width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; position: relative; }
 
-        /* NOTIFICATIONS */
-        #notifPopup { 
-            position: fixed; top: -150px; left: 50%; transform: translateX(-50%); 
-            width: 90%; max-width: 400px; background: var(--panel); backdrop-filter: var(--glass);
-            padding: 18px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.1);
-            z-index: 5000; display: flex; align-items: center; gap: 14px;
-            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        #notifPopup.show { top: 25px; }
-
-        .screen { 
-            display: none; flex-direction: column; height: 100%; 
-            overflow: hidden; animation: screenFade 0.25s ease-out;
-        }
+        .screen { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.2s ease; overflow: hidden; }
         .screen.active { display: flex; }
-        @keyframes screenFade { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* IPAD MOUSE SCROLLING FIX */
+        .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 1000; padding-top: env(safe-area-inset-top); }
+        
+        /* HARDWARE MOUSE COMPATIBLE SCROLL AREA */
         .scroll-area { 
-            flex: 1; overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; 
-            padding: 20px; padding-bottom: 200px;
-            overscroll-behavior: contain;
+            flex: 1; overflow-y: scroll; padding: 20px; padding-bottom: 200px; 
+            -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
         }
-
-        .header { 
-            padding: 20px; background: var(--panel); backdrop-filter: var(--glass); 
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding-top: calc(15px + var(--safe-top)); z-index: 100;
-        }
-
+        
         .nav-bar { 
-            position: absolute; bottom: calc(20px + var(--safe-bottom)); 
-            left: 50%; transform: translateX(-50%); width: 92%; max-width: 500px; 
-            height: 70px; background: var(--panel); backdrop-filter: var(--glass); 
-            border-radius: 30px; display: flex; border: 1px solid rgba(255,255,255,0.1); 
-            z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            position: absolute; bottom: calc(15px + var(--safe-bottom)); left: 5%; width: 90%; height: 65px; 
+            background: var(--panel); backdrop-filter: var(--glass); border-radius: 20px; 
+            display: flex; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
         }
-        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; opacity: 0.3; transition: 0.2s; }
-        .nav-btn.active { opacity: 1; color: var(--accent); }
+        .nav-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; opacity: 0.5; }
+        .nav-btn.active { opacity: 1; color: var(--accent); transform: scale(1.1); }
 
         .input-wrap { 
-            padding: 15px; display: flex; gap: 12px; 
-            background: var(--panel); backdrop-filter: var(--glass); 
-            border-top: 1px solid rgba(255,255,255,0.05);
-            position: absolute; bottom: 100px; width: 100%; z-index: 100;
+            position: absolute; bottom: 90px; left: 0; width: 100%;
+            padding: 12px; display: flex; gap: 10px; background: var(--panel); 
+            backdrop-filter: var(--glass); border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000;
         }
 
-        /* MESSAGES */
-        .msg { display: flex; gap: 12px; max-width: 85%; align-items: flex-end; margin-bottom: 15px; animation: msgSlide 0.3s ease; }
-        @keyframes msgSlide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; margin-bottom: 12px; }
         .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 14px 18px; border-radius: 22px; background: var(--card); border: 1px solid rgba(255,255,255,0.05); word-wrap: break-word; line-height: 1.4; }
-        .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; color: white; }
-        .ai .bubble { border: 2px solid var(--dev-gold); border-bottom-left-radius: 4px; box-shadow: 0 0 15px rgba(245, 158, 11, 0.1); }
+        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; background: #27272a; word-wrap: break-word; line-height: 1.4; }
+        .me .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
+        .ai .bubble { border: 2px solid var(--dev-gold); border-bottom-left-radius: 4px; }
         
-        .pfp { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #333; flex-shrink: 0; }
-
-        input, button, select, textarea { 
-            padding: 15px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); 
-            background: var(--card); color: var(--text); outline: none; font-size: 16px;
-        }
-        button { background: var(--accent); color: white; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        button:active { transform: scale(0.96); }
+        .pfp { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #444; flex-shrink: 0; }
+        
+        input, select, textarea { background: #18181b; border: 1px solid #333; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; font-size: 16px; }
+        button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .dev-btn { background: var(--dev-gold); color: black; }
 
-        .list-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 18px; background: rgba(255,255,255,0.03); border-radius: 22px; 
-            margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
-        }
-        .list-item:hover { background: rgba(255,255,255,0.06); }
-
-        #modal { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); 
-            z-index: 3000; display: none; align-items: center; justify-content: center; 
-            padding: 25px; backdrop-filter: blur(15px); 
-        }
-        .modal-box { background: var(--card); padding: 30px; border-radius: 35px; width: 100%; max-width: 420px; border: 1px solid rgba(255,255,255,0.1); }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: rgba(255,255,255,0.03); border-radius: 18px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        
+        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); }
+        .modal-box { background: #18181b; padding: 25px; border-radius: 28px; width: 100%; max-width: 350px; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
 
-<div id="notifPopup">
-    <img id="notifImg" src="" style="width:40px; height:40px; border-radius:50%; display:none;">
-    <div style="flex:1"><b id="notifTitle" style="font-size:14px;"></b><p id="notifText" style="font-size:12px; opacity:0.8;"></p></div>
-</div>
-
 <div id="modal"><div class="modal-box" id="modalContent"></div></div>
 
-<div id="loginScreen" style="position:fixed; inset:0; background:var(--bg); z-index:4000; display:flex; align-items:center; justify-content:center; padding:25px;">
-    <div style="width:100%; max-width:340px; text-align:center;">
-        <h1 style="margin-bottom:10px; font-size:42px; letter-spacing:-1.5px;">Pro Chat</h1>
-        <p style="opacity:0.4; font-size:13px; margin-bottom:30px; font-weight:bold;">ULTIMATE v4.8</p>
-        <input type="text" id="userInp" placeholder="Username" style="width:100%; margin-bottom:12px;">
-        <input type="password" id="passInp" placeholder="Password" style="width:100%; margin-bottom:20px;">
-        <button onclick="login()" style="width:100%; padding:18px; font-size:18px;">Enter Chat</button>
+<div id="loginScreen" style="position:fixed; inset:0; background:var(--bg); z-index:4000; display:flex; align-items:center; justify-content:center; padding:20px;">
+    <div style="width: 100%; max-width: 300px; text-align: center;">
+        <h1 style="margin-bottom: 25px;">Pro Chat <span style="font-size:12px; opacity:0.5;">v5.0</span></h1>
+        <input type="text" id="userInp" placeholder="Username" style="margin-bottom:10px;">
+        <input type="password" id="passInp" placeholder="Password" style="margin-bottom:20px;">
+        <button onclick="login()" style="width:100%">Sign In / Register</button>
     </div>
 </div>
 
@@ -133,36 +83,36 @@
     <div id="home" class="screen active">
         <div class="header">
             <h2>Home</h2>
-            <button onclick="openCreateHub()" style="padding:8px 16px; font-size:13px; border-radius:12px;">+ Create</button>
+            <button onclick="openCreateHub()" style="padding: 5px 15px; font-size:12px;">+ Create</button>
         </div>
         <div class="scroll-area">
-            <p style="font-size:11px; font-weight:900; opacity:0.3; margin-bottom:15px; letter-spacing:1.5px;">DIRECT MESSAGES</p>
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin-bottom: 12px; letter-spacing: 1px;">DIRECT MESSAGES</p>
             <div id="friendList"></div>
-            <p style="font-size:11px; font-weight:900; opacity:0.3; margin:35px 0 15px; letter-spacing:1.5px;">PUBLIC LOBBIES</p>
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin: 30px 0 12px; letter-spacing: 1px;">PUBLIC LOBBIES</p>
             <div id="roomList"></div>
         </div>
     </div>
 
     <div id="chat" class="screen">
         <div class="header">
-            <span onclick="setTab('home')" style="font-size:26px; cursor:pointer;">✕</span>
+            <span onclick="setTab('home')" style="cursor:pointer; font-size: 20px;">✕</span>
             <b id="chatTitle">...</b>
-            <span style="opacity:0;">☆</span>
+            <span id="pinIcon" onclick="togglePin()" style="cursor:pointer; font-size: 20px;">☆</span>
         </div>
-        <div id="chatBox" class="scroll-area" style="display:flex; flex-direction:column;"></div>
+        <div id="chatBox" class="scroll-area"></div>
         <div class="input-wrap">
-            <input type="file" id="mediaInp" style="display:none" onchange="sendMedia(this)">
-            <button onclick="document.getElementById('mediaInp').click()" style="width:55px; background:rgba(255,255,255,0.08);">+</button>
-            <input type="text" id="msgInp" placeholder="Message..." style="flex:1;" onkeypress="if(event.key==='Enter') sendText()">
-            <button onclick="sendText()" style="width:70px;">➤</button>
+            <button onclick="document.getElementById('fileInp').click()" style="width:45px; background:#27272a;">+</button>
+            <input type="file" id="fileInp" style="display:none" accept="image/*" onchange="sendMedia(this)">
+            <input type="text" id="msgInp" placeholder="Message..." onkeypress="if(event.key==='Enter') sendText()">
+            <button onclick="sendText()" style="width:60px">➤</button>
         </div>
     </div>
 
     <div id="people" class="screen">
         <div class="header"><h2>Explore</h2></div>
         <div class="scroll-area">
-            <div id="pendingReqs"></div>
-            <p style="font-size:11px; font-weight:900; opacity:0.3; margin-bottom:15px; letter-spacing:1.5px;">COMMUNITY</p>
+            <div id="pendingRequests"></div>
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin-bottom: 12px;">DISCOVER PEOPLE</p>
             <div id="allUsers"></div>
         </div>
     </div>
@@ -170,27 +120,21 @@
     <div id="settings" class="screen">
         <div class="header"><h2>Settings</h2></div>
         <div class="scroll-area">
-            <div style="text-align:center; margin-bottom:35px;">
+            <div style="text-align: center; margin-bottom: 30px;">
                 <div style="position:relative; display:inline-block;">
-                    <img id="myPFP" class="pfp" style="width:110px; height:110px; border:4px solid var(--accent); box-shadow:0 10px 30px rgba(0,0,0,0.3);">
-                    <button onclick="document.getElementById('pfpInp').click()" style="position:absolute; bottom:0; right:0; width:38px; height:38px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; border:3px solid var(--bg);">📸</button>
-                    <input type="file" id="pfpInp" style="display:none;" onchange="updatePFP(this)">
+                    <img id="myPFP" class="pfp" style="width:100px; height:100px; border:3px solid var(--accent);">
+                    <button onclick="document.getElementById('pfpInp').click()" style="position:absolute; bottom:0; right:0; width:35px; height:35px; border-radius:50%; padding:0;">📸</button>
                 </div>
-                <h3 id="setDisplayName" style="margin-top:15px; font-size:22px;"></h3>
-                <p id="setHandle" style="opacity:0.4; font-size:13px;"></p>
+                <h3 id="displayU" style="margin-top:10px;"></h3>
+                <input type="file" id="pfpInp" style="display:none" accept="image/*" onchange="uploadPFP(this)">
             </div>
 
-            <div id="devSection" style="display:none; background:rgba(245,158,11,0.08); border:2px solid var(--dev-gold); padding:22px; border-radius:28px; margin-bottom:25px;">
-                <h4 style="color:var(--dev-gold); margin-bottom:8px;">🤖 Grok Bot Lab</h4>
-                <p style="font-size:12px; margin-bottom:15px; opacity:0.7;">Deploy custom AI personalities into any room.</p>
-                <button onclick="openBotLab()" class="dev-btn" style="width:100%;">Create New Bot</button>
+            <div id="devSection" style="display:none; background:rgba(245,158,11,0.1); border:1px solid var(--dev-gold); padding:15px; border-radius:20px; margin-bottom:20px;">
+                <p style="color:var(--dev-gold); font-size:11px; font-weight:bold; margin-bottom:10px;">🛠 BOT DEVELOPER HUB</p>
+                <button onclick="openBotLab()" class="dev-btn" style="width:100%;">Create New AI Bot</button>
             </div>
 
-            <p style="font-size:11px; opacity:0.3; margin-bottom:10px; font-weight:900;">APPEARANCE</p>
-            <select id="themeSelect" onchange="changeTheme(this.value)" style="width:100%; margin-bottom:25px;">
-                <option value="dark">Onyx Dark</option><option value="light">Pure Light</option>
-            </select>
-            <button onclick="logout()" style="width:100%; background:#ef4444; font-weight:900;">LOGOUT</button>
+            <button onclick="logout()" style="width:100%; background:#333;">Logout</button>
         </div>
     </div>
 
@@ -205,7 +149,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getDatabase, ref, set, push, onValue, onChildAdded, get, remove, update } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
-    const fb = initializeApp({
+    const firebaseConfig = {
         apiKey: "AIzaSyBUl-7CM3nl38AIr7MUb8fozBCikz1No7g",
         authDomain: "hostpxp.firebaseapp.com",
         databaseURL: "https://hostpxp-default-rtdb.firebaseio.com",
@@ -213,56 +157,40 @@
         storageBucket: "hostpxp.firebasestorage.app",
         messagingSenderId: "891844604890",
         appId: "1:891844604890:web:b7bc043499d024207d86e3"
-    });
-    const db = getDatabase(fb);
+    };
+
+    const fbApp = initializeApp(firebaseConfig);
+    const db = getDatabase(fbApp);
     const GROK_KEY = "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";
 
     let currentUser = localStorage.getItem("chatU");
     let userData = null;
     let activeChatId = null;
+    let isDM = false;
 
-    window.triggerNotif = (t, m) => {
-        const p = document.getElementById("notifPopup");
-        document.getElementById("notifTitle").innerText = t;
-        document.getElementById("notifText").innerText = m;
-        p.classList.add("show");
-        setTimeout(() => p.classList.remove("show"), 4000);
-    };
-
-    // --- AUTH & PFP ---
+    // --- AUTH ---
     window.login = async () => {
         const u = document.getElementById("userInp").value.trim().toLowerCase();
         const p = document.getElementById("passInp").value.trim();
         if(!u || !p) return;
-        const s = await get(ref(db, 'users/' + u));
-        if(!s.exists()){
-            await set(ref(db, 'users/' + u), { pass: p, displayName: u, isDev: (u==='owen lee'), pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed="+u });
-        } else if (s.val().pass !== p) return alert("Incorrect password");
+        const snap = await get(ref(db, 'users/' + u));
+        if(!snap.exists()){
+            await set(ref(db, 'users/' + u), { pass: p, isDev: (u === 'owen'), pfp: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u });
+        } else if(snap.val().pass !== p) return alert("Wrong password");
         currentUser = u; localStorage.setItem("chatU", u); location.reload();
     };
 
-    window.updatePFP = (input) => {
-        const file = input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            await update(ref(db, `users/${currentUser}`), { pfp: e.target.result });
-            triggerNotif("Success", "Profile picture updated!");
-        };
-        reader.readAsDataURL(file);
-    };
-
     // --- BOT ENGINE ---
-    async function grokAI(prompt, personality) {
+    async function askGrok(prompt, personality) {
         try {
             const res = await fetch("https://api.x.ai/v1/chat/completions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROK_KEY}` },
-                body: JSON.stringify({ model: "grok-beta", messages: [{ role: "system", content: "Your personality: " + personality }, { role: "user", content: prompt }] })
+                body: JSON.stringify({ model: "grok-beta", messages: [{ role: "system", content: personality }, { role: "user", content: prompt }] })
             });
             const d = await res.json();
             return d.choices[0].message.content;
-        } catch(e) { return "Bot Error: Grok API unreachable."; }
+        } catch(e) { return "Grok is resting right now."; }
     }
 
     // --- MESSAGING ---
@@ -270,31 +198,19 @@
         const i = document.getElementById("msgInp");
         const txt = i.value.trim();
         if(!txt || !activeChatId) return;
-        const path = activeChatId.includes("_dm_") ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
+        const path = isDM ? 'dms/' + activeChatId : 'rooms/' + activeChatId;
         
-        push(ref(db, path), { 
-            sender: currentUser, 
-            senderName: userData.displayName, 
-            text: txt, 
-            pfp: userData.pfp, 
-            time: Date.now() 
-        });
+        push(ref(db, path), { sender: currentUser, text: txt, pfp: userData.pfp, time: Date.now() });
         i.value = "";
 
-        // Check for active bots in this room
+        // Bot Response Trigger
         const botSnap = await get(ref(db, 'bots'));
-        if(botSnap.exists()) {
+        if(botSnap.exists()){
             botSnap.forEach(async (b) => {
                 const bot = b.val();
-                if(bot.activeRoom === activeChatId) {
-                    const reply = await grokAI(txt, bot.personality);
-                    push(ref(db, path), { 
-                        sender: "bot_"+bot.name, 
-                        senderName: bot.name, 
-                        text: reply, 
-                        pfp: "https://api.dicebear.com/7.x/bottts/svg?seed="+bot.name, 
-                        isAI: true 
-                    });
+                if(bot.room === activeChatId) {
+                    const reply = await askGrok(txt, bot.personality);
+                    push(ref(db, path), { sender: "🤖 " + bot.name, text: reply, pfp: "https://api.dicebear.com/7.x/bottts/svg?seed=" + bot.name, isAI: true, time: Date.now() });
                 }
             });
         }
@@ -305,139 +221,118 @@
         const isMe = d.sender === currentUser;
         const div = document.createElement("div"); 
         div.className = `msg ${isMe ? 'me' : ''} ${d.isAI ? 'ai' : ''}`;
-        div.innerHTML = `<img src="${d.pfp}" class="pfp"><div class="bubble"><small style="display:block; font-size:10px; opacity:0.5; margin-bottom:2px;">${d.senderName}</small>${d.text}</div>`;
+        div.innerHTML = `<img src="${d.pfp}" class="pfp"><div class="bubble"><small style="display:block; font-size:9px; opacity:0.5">${d.sender}</small>${d.text}</div>`;
         box.appendChild(div); box.scrollTop = box.scrollHeight;
     }
 
-    // --- CREATION HUB (DM vs Lobby) ---
+    // --- HUB LOGIC ---
     window.openCreateHub = () => {
         document.getElementById("modal").style.display = "flex";
         document.getElementById("modalContent").innerHTML = `
-            <h3 style="margin-bottom:20px; text-align:center;">Create New Space</h3>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <button onclick="startDMLogic()" style="background:var(--accent);">Private Direct Message</button>
-                <button onclick="startLobbyLogic()" style="background:var(--card); border:1px solid var(--accent);">Public Lobby / Room</button>
-                <button onclick="document.getElementById('modal').style.display='none'" style="background:none; margin-top:10px; opacity:0.5;">Cancel</button>
-            </div>
+            <h3>Create Space</h3><br>
+            <button onclick="startStep('dm')" style="width:100%; margin-bottom:10px;">Direct Message</button>
+            <button onclick="startStep('lobby')" style="width:100%; background:#27272a;">Public Lobby</button>
+            <button onclick="closeModal()" style="background:none; width:100%; margin-top:10px;">Cancel</button>
         `;
     };
 
-    window.startDMLogic = () => {
+    window.startStep = (type) => {
+        const placeholder = type === 'dm' ? "Enter Username..." : "Enter Room Name...";
+        const action = type === 'dm' ? "openDM(document.getElementById('hubInp').value)" : "joinRoom(document.getElementById('hubInp').value)";
         document.getElementById("modalContent").innerHTML = `
-            <h3 style="margin-bottom:15px;">Start DM</h3>
-            <p style="font-size:12px; opacity:0.6; margin-bottom:15px;">Type a user's handle to start a private chat.</p>
-            <input id="dmTarget" placeholder="Username..." style="width:100%; margin-bottom:15px;">
-            <button onclick="openDM(document.getElementById('dmTarget').value); document.getElementById('modal').style.display='none';" style="width:100%;">Chat</button>
-        `;
-    };
-
-    window.startLobbyLogic = () => {
-        document.getElementById("modalContent").innerHTML = `
-            <h3 style="margin-bottom:15px;">New Lobby</h3>
-            <input id="roomTarget" placeholder="Room Name..." style="width:100%; margin-bottom:15px;">
-            <button onclick="joinRoom(document.getElementById('roomTarget').value); document.getElementById('modal').style.display='none';" style="width:100%;">Create & Join</button>
+            <h3>New ${type.toUpperCase()}</h3><br>
+            <input id="hubInp" placeholder="${placeholder}"><br><br>
+            <button onclick="${action}; closeModal();" style="width:100%;">Start</button>
         `;
     };
 
     window.openBotLab = () => {
         document.getElementById("modal").style.display = "flex";
         document.getElementById("modalContent").innerHTML = `
-            <h3>🤖 Bot Developer Lab</h3><br>
-            <input id="bn" placeholder="Bot Name" style="width:100%; margin-bottom:10px;">
-            <textarea id="bp" placeholder="Personality instructions..." style="width:100%; height:80px; padding:12px; border-radius:15px; margin-bottom:10px;"></textarea>
-            <input id="br" placeholder="Target Room ID" style="width:100%; margin-bottom:15px;">
-            <button onclick="saveBot()" style="width:100%;">Deploy to Room</button>
-            <button onclick="document.getElementById('modal').style.display='none'" style="background:none; width:100%; margin-top:10px;">Cancel</button>
+            <h3>Bot Lab</h3><br>
+            <input id="botN" placeholder="Bot Name"><br><br>
+            <textarea id="botP" placeholder="Personality (e.g. You are a pirate)"></textarea><br><br>
+            <input id="botR" placeholder="Target Room ID"><br><br>
+            <button onclick="saveBot()" style="width:100%;">Deploy Bot</button>
         `;
     };
 
     window.saveBot = async () => {
-        const name = document.getElementById("bn").value;
-        const pers = document.getElementById("bp").value;
-        const room = document.getElementById("br").value;
-        if(!name || !pers || !room) return;
-        await push(ref(db, 'bots'), { name, personality: pers, activeRoom: room });
-        document.getElementById("modal").style.display = "none";
-        triggerNotif("Bot Active", name + " deployed!");
+        const name = document.getElementById("botN").value;
+        const personality = document.getElementById("botP").value;
+        const room = document.getElementById("botR").value;
+        if(name && personality && room) {
+            await push(ref(db, 'bots'), { name, personality, room });
+            closeModal();
+            alert("Bot Deployed!");
+        }
     };
 
-    // --- CORE ---
-    function init() {
-        onValue(ref(db, `users/${currentUser}`), s => {
-            userData = s.val();
-            document.getElementById("setDisplayName").innerText = userData.displayName;
-            document.getElementById("setHandle").innerText = "@" + currentUser;
-            document.getElementById("myPFP").src = userData.pfp;
-            if(userData.isDev) document.getElementById("devSection").style.display = "block";
-        });
-
-        onValue(ref(db, 'users'), s => {
-            const list = document.getElementById("allUsers"); list.innerHTML = "";
-            s.forEach(c => {
-                if(c.key === currentUser) return;
-                const div = document.createElement("div"); div.className = "list-item";
-                let adminBtn = (currentUser === 'owen lee') ? `<button class="dev-btn" onclick="toggleDev('${c.key}', ${c.val().isDev})" style="font-size:10px; padding:6px 12px; border-radius:8px;">Grant Dev</button>` : '';
-                div.innerHTML = `<span><b>${c.val().displayName}</b> ${c.val().isDev?'<small style="color:gold;">[DEV]</small>':''}</span> <div style="display:flex; gap:8px;">${adminBtn} <button onclick="sendReq('${c.key}')" style="font-size:11px; padding:6px 15px;">Add</button></div>`;
-                list.appendChild(div);
-            });
-        });
-
-        onValue(ref(db, 'friends/'+currentUser), s => {
-            const list = document.getElementById("friendList"); list.innerHTML = "";
-            s.forEach(c => {
-                const div = document.createElement("div"); div.className = "list-item";
-                div.innerHTML = `<b>${c.key}</b> <span>💬</span>`; div.onclick = () => openDM(c.key);
-                list.appendChild(div);
-            });
-        });
-
-        onValue(ref(db, 'requests/'+currentUser), s => {
-            const list = document.getElementById("pendingReqs"); list.innerHTML = "";
-            s.forEach(c => {
-                const div = document.createElement("div"); div.className = "list-item"; div.style.background = "var(--accent)";
-                div.innerHTML = `<span><b>${c.key}</b> wants to chat</span> <button onclick="acceptFriend('${c.key}')" style="background:white; color:var(--accent); font-size:11px;">Accept</button>`;
-                list.appendChild(div);
-            });
-        });
-    }
-
-    window.joinRoom = (n) => {
-        const r = n.toLowerCase(); if(!r) return;
-        activeChatId = r; document.getElementById("chatTitle").innerText = "# " + r;
+    // --- SYSTEM ---
+    window.joinRoom = (r) => {
+        if(!r) return; isDM = false; activeChatId = r.toLowerCase();
+        document.getElementById("chatTitle").innerText = "# " + r;
         document.getElementById("chatBox").innerHTML = ""; setTab('chat');
-        onChildAdded(ref(db, 'rooms/'+r), s => renderMsg(s.val()));
+        onChildAdded(ref(db, 'rooms/' + activeChatId), s => renderMsg(s.val()));
     };
 
     window.openDM = (f) => {
-        if(!f) return;
-        activeChatId = [currentUser, f.toLowerCase()].sort().join("_dm_");
-        document.getElementById("chatTitle").innerText = "DM: " + f;
+        if(!f) return; isDM = true; activeChatId = [currentUser, f.toLowerCase()].sort().join("_dm_");
+        document.getElementById("chatTitle").innerText = f;
         document.getElementById("chatBox").innerHTML = ""; setTab('chat');
-        onChildAdded(ref(db, 'dms/'+activeChatId), s => renderMsg(s.val()));
+        onChildAdded(ref(db, 'dms/' + activeChatId), s => renderMsg(s.val()));
+    };
+
+    window.uploadPFP = (input) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            await update(ref(db, `users/${currentUser}`), { pfp: e.target.result });
+            document.getElementById("myPFP").src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
     };
 
     window.setTab = (id) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
+        document.getElementById('btn-'+id).classList.add('active');
     };
 
-    window.toggleDev = async (uid, s) => { await update(ref(db, `users/${uid}`), { isDev: !s }); };
-    window.sendReq = (t) => { set(ref(db, `requests/${t}/${currentUser}`), true); triggerNotif("Sent", "Request sent!"); };
-    window.acceptFriend = async (s) => {
-        await update(ref(db, `friends/${currentUser}`), { [s]: true });
-        await update(ref(db, `friends/${s}`), { [currentUser]: true });
-        await remove(ref(db, `requests/${currentUser}/${s}`));
-    };
-
-    window.changeTheme = (t) => document.documentElement.setAttribute('data-theme', t);
+    window.closeModal = () => document.getElementById("modal").style.display = "none";
     window.logout = () => { localStorage.clear(); location.reload(); };
 
+    // --- INIT ---
     if(currentUser) {
         document.getElementById("loginScreen").style.display = "none";
-        init();
+        onValue(ref(db, 'users/' + currentUser), s => {
+            userData = s.val();
+            document.getElementById("displayU").innerText = "@" + currentUser;
+            document.getElementById("myPFP").src = userData.pfp;
+            if(userData.isDev) document.getElementById("devSection").style.display = "block";
+        });
+        
+        onValue(ref(db, 'friends/' + currentUser), snap => {
+            const list = document.getElementById("friendList"); list.innerHTML = "";
+            snap.forEach(f => {
+                const d = document.createElement("div"); d.className = "list-item";
+                d.innerHTML = `<b>${f.key}</b>`; d.onclick = () => openDM(f.key);
+                list.appendChild(d);
+            });
+        });
+        
+        onValue(ref(db, 'users'), snap => {
+            const list = document.getElementById("allUsers"); list.innerHTML = "";
+            snap.forEach(u => {
+                if(u.key === currentUser) return;
+                const d = document.createElement("div"); d.className = "list-item";
+                d.innerHTML = `<span>${u.key}</span> <button onclick="sendReq('${u.key}')" style="padding:4px 10px; font-size:10px">Add</button>`;
+                list.appendChild(d);
+            });
+        });
     }
+
+    window.sendReq = (t) => set(ref(db, `requests/${t}/${currentUser}`), true);
 </script>
 </body>
 </html>
