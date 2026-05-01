@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pro Chat Elite v4.2</title>
+    <title>Pro Chat Elite v4.3</title>
     <style>
         :root {
             --bg: #09090b; --panel: rgba(30, 30, 35, 0.95);
@@ -33,6 +33,7 @@
         }
 
         .header { padding: 15px 20px; background: var(--panel); backdrop-filter: var(--glass); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; padding-top: env(safe-area-inset-top); }
+        .header-actions { display: flex; gap: 15px; align-items: center; }
         
         #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 180px; -webkit-overflow-scrolling: touch; }
         
@@ -95,7 +96,7 @@
 
 <div id="loginScreen">
     <div style="width: 100%; max-width: 300px;">
-        <h1 style="margin-bottom: 20px;">Pro Chat <span class="badge" style="background:#444">v4.2</span></h1>
+        <h1 style="margin-bottom: 20px;">Pro Chat <span class="badge" style="background:#444">v4.3</span></h1>
         <input type="text" id="userInp" placeholder="Username">
         <input type="password" id="passInp" placeholder="Password">
         <button onclick="login()" style="width:100%">Enter</button>
@@ -109,11 +110,17 @@
         <div style="flex: 1; overflow-y: auto; padding: 20px 20px 150px;">
             <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin-bottom: 12px;">FRIENDS</p>
             <div id="friendList"></div>
-            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin: 25px 0 12px;">PINNED ROOMS</p>
+            
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.4; margin: 25px 0 12px;">PINNED ROOMS & LOBBIES</p>
             <div id="roomList"></div>
+            
             <div style="margin-top: 20px; display: flex; gap: 8px;">
-                <input type="text" id="newRoomInp" placeholder="Join ID..." style="margin-bottom:0">
+                <input type="text" id="newRoomInp" placeholder="Join Public ID..." style="margin-bottom:0">
                 <button onclick="joinRoom()" style="padding: 0 15px;">Join</button>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <button onclick="createPrivateLobby()" class="sec-btn" style="width:100%; border: 1px dashed var(--accent);">+ Create Private Lobby</button>
             </div>
         </div>
     </div>
@@ -121,8 +128,11 @@
     <div id="chat" class="screen">
         <div class="header">
             <span onclick="setTab('home')" style="cursor:pointer; font-size: 20px;">✕</span>
-            <b id="chatTitle">...</b>
-            <span id="pinIcon" onclick="togglePin()" style="cursor:pointer; font-size: 20px;">☆</span>
+            <b id="chatTitle" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">...</b>
+            <div class="header-actions">
+                <span id="shareIcon" onclick="shareLobby()" style="cursor:pointer; font-size: 18px;" title="Copy Invite Link">🔗</span>
+                <span id="pinIcon" onclick="togglePin()" style="cursor:pointer; font-size: 20px;">☆</span>
+            </div>
         </div>
         <div id="chatBox"></div>
         <div class="input-wrap">
@@ -244,12 +254,42 @@
         location.reload();
     };
 
-    // --- CHAT & PINNING ---
+    // --- CHAT, LOBBIES & PINNING ---
+    window.createPrivateLobby = () => {
+        // Generate a random ID that is hard to guess
+        const privateId = "lobby_" + Math.random().toString(36).substring(2, 12);
+        joinRoom(privateId);
+        showToast("Private Lobby Created!");
+        // Pin it automatically so you don't lose it
+        let pins = JSON.parse(localStorage.getItem("pins_v4") || "[]");
+        if(!pins.some(p => p.id === privateId)) {
+            pins.push({ id: privateId, type: 'room', name: "Private Lobby" });
+            localStorage.setItem("pins_v4", JSON.stringify(pins));
+            renderPins();
+        }
+    };
+
+    window.shareLobby = () => {
+        if(isDM) return showToast("Cannot link DMs");
+        const url = window.location.origin + window.location.pathname + "?lobby=" + activeChatId;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast("Invite Link Copied!");
+        }).catch(err => {
+            showToast("Failed to copy link");
+        });
+    };
+
     window.joinRoom = (n) => {
         const r = n || document.getElementById("newRoomInp").value.trim(); if(!r) return;
-        isDM = false; activeChatId = r; document.getElementById("chatTitle").innerText = "# " + r;
+        isDM = false; activeChatId = r; 
+        
+        let displayTitle = r;
+        if(r.startsWith("lobby_")) displayTitle = "Private Lobby";
+        
+        document.getElementById("chatTitle").innerText = "# " + displayTitle;
         document.getElementById("chatBox").innerHTML = ""; setTab('chat');
         checkPinStatus();
+        document.getElementById("shareIcon").style.display = "inline-block"; // Show share icon
         onChildAdded(ref(db, 'rooms/' + r), (s) => renderMsg(s.val()));
     };
 
@@ -257,6 +297,7 @@
         isDM = true; activeChatId = [currentUser, f].sort().join("_dm_");
         document.getElementById("chatTitle").innerText = f; document.getElementById("chatBox").innerHTML = "";
         setTab('chat'); checkPinStatus();
+        document.getElementById("shareIcon").style.display = "none"; // Hide share icon in DMs
         onChildAdded(ref(db, 'dms/' + activeChatId), (s) => renderMsg(s.val()));
     };
 
@@ -264,7 +305,11 @@
         let pins = JSON.parse(localStorage.getItem("pins_v4") || "[]");
         const idx = pins.findIndex(p => p.id === activeChatId);
         if(idx > -1) { pins.splice(idx, 1); showToast("Unpinned"); }
-        else { pins.push({ id: activeChatId, type: isDM ? 'dm' : 'room', name: document.getElementById("chatTitle").innerText }); showToast("Pinned"); }
+        else { 
+            let pinName = document.getElementById("chatTitle").innerText.replace('# ', '');
+            pins.push({ id: activeChatId, type: isDM ? 'dm' : 'room', name: pinName }); 
+            showToast("Pinned"); 
+        }
         localStorage.setItem("pins_v4", JSON.stringify(pins));
         checkPinStatus(); renderPins();
     };
@@ -428,11 +473,22 @@
         if(document.getElementById('btn-'+id)) document.getElementById('btn-'+id).classList.add('active');
     };
 
+    // --- BOOTSTRAP & LINK ROUTING ---
     if(currentUser) {
         document.getElementById("loginScreen").style.display = "none";
         if(isAdmin) document.getElementById("adminPanel").style.display = "block";
         syncSocial(); renderPins();
+        
         onValue(ref(db, 'users/'+currentUser), s => { if(!s.exists()) logout(); });
+
+        // Check if user clicked an invite link
+        const urlParams = new URLSearchParams(window.location.search);
+        const lobbyId = urlParams.get('lobby');
+        if (lobbyId) {
+            // Remove the param from the URL visually so it doesn't clutter
+            window.history.replaceState({}, document.title, window.location.pathname);
+            joinRoom(lobbyId);
+        }
     }
 </script>
 </body>
