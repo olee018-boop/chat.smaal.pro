@@ -148,7 +148,7 @@
             <span onclick="setTab('home')" style="cursor:pointer; font-size: 20px;">✕</span>
             <b id="chatTitle" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">...</b>
             <div class="header-actions">
-                <span id="lobbyActionIcon" onclick="manageLobby()" style="cursor:pointer; font-size: 18px; display:none;" title="Manage Lobby">⚙️</span>
+                <span id="lobbyActionIcon" onclick="manageLobby()" style="cursor:pointer; font-size: 18px; display:none;" title="Delete Lobby">⚙️</span>
                 <span id="shareIcon" onclick="shareLobby()" style="cursor:pointer; font-size: 18px;" title="Copy Invite Link">🔗</span>
                 <span id="pinIcon" onclick="togglePin()" style="cursor:pointer; font-size: 20px;">☆</span>
             </div>
@@ -318,7 +318,6 @@
 
     window.joinRoom = async (n) => {
         const r = n || document.getElementById("newRoomInp").value.trim(); if(!r) return;
-        isDM = false; activeChatId = r; 
         
         let displayTitle = r;
         document.getElementById("lobbyActionIcon").style.display = "none";
@@ -329,31 +328,39 @@
             if(metaSnap.exists()) {
                 const meta = metaSnap.val();
                 
-                // If Lobby Was Deleted
+                // 1. Check if deleted
                 if(meta.deletedBy) {
                     showToast(`This lobby was deleted by ${meta.deletedBy}`);
                     unpin(r); // auto-remove dead lobby from pins
                     return;
                 }
 
-                // Password Protection
-                if(meta.password && !localStorage.getItem("unlocked_" + r)) {
-                    const entered = prompt("This lobby is protected. Enter password:");
-                    if(entered !== meta.password) {
-                        showToast("Incorrect password.");
-                        return;
+                // 2. Strict Password Protection (Skip if it's the creator)
+                if(meta.password && meta.creator !== currentUser) {
+                    if(!localStorage.getItem("unlocked_" + r)) {
+                        const entered = prompt("This lobby is protected. Enter password:");
+                        if(entered !== meta.password) {
+                            showToast("Incorrect password.");
+                            return; // Blocks them entirely from joining
+                        }
+                        localStorage.setItem("unlocked_" + r, "true");
                     }
-                    localStorage.setItem("unlocked_" + r, "true");
                 }
                 
                 displayTitle = meta.name;
                 currentLobbyMeta = meta;
-                document.getElementById("lobbyActionIcon").style.display = "inline-block";
+
+                // 3. Only show gear icon to the creator
+                if(meta.creator === currentUser) {
+                    document.getElementById("lobbyActionIcon").style.display = "inline-block";
+                }
             } else {
                 displayTitle = "Private Lobby";
             }
         }
         
+        // Change state ONLY after password passes
+        isDM = false; activeChatId = r; 
         document.getElementById("chatTitle").innerText = "# " + displayTitle;
         document.getElementById("chatBox").innerHTML = ""; setTab('chat');
         checkPinStatus();
@@ -363,17 +370,12 @@
 
     window.manageLobby = () => {
         if(!currentLobbyMeta) return;
+        // Since only the creator sees the icon, this will always be a delete action
         if(currentLobbyMeta.creator === currentUser) {
             openModal("Delete Lobby?", "This will permanently delete the lobby for everyone.", async () => {
                 await update(ref(db, 'rooms_meta/' + activeChatId), { deletedBy: currentUser });
                 showToast("Lobby Deleted");
                 unpin(activeChatId);
-                setTab('home');
-            });
-        } else {
-            openModal("Leave Lobby?", "This will remove the lobby from your pins.", () => {
-                unpin(activeChatId);
-                showToast("Left Lobby");
                 setTab('home');
             });
         }
